@@ -1,0 +1,12 @@
+-r requirements.txt
+
+pytest
+pytest-django
+coverage
+black
+flake8
+isort
+mypy
+pre-commit
+bandit
+safety
