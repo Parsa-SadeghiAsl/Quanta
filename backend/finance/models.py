@@ -75,3 +75,49 @@ class Budget(models.Model):
 
     def __str__(self):
         return f"Budget {self.category.name} {self.amount}"
+
+
+from django.utils import timezone
+from django.db import models
+
+class RecurringTransaction(models.Model):
+    FREQ_DAILY = "daily"
+    FREQ_WEEKLY = "weekly"
+    FREQ_MONTHLY = "monthly"
+    FREQ_CHOICES = ((FREQ_DAILY, "Daily"), (FREQ_WEEKLY, "Weekly"), (FREQ_MONTHLY, "Monthly"))
+
+    user = models.ForeignKey("auth.User", on_delete=models.CASCADE, related_name="recurring_transactions")
+    account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="recurring_transactions")
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    start_date = models.DateField()
+    next_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    frequency = models.CharField(max_length=10, choices=FREQ_CHOICES, default=FREQ_MONTHLY)
+    interval = models.PositiveIntegerField(default=1, help_text="Repeat every `interval` frequency units (e.g., every 2 weeks).")
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Recurring {self.amount} {self.frequency} for {self.user}"
+
+    def advance_next_date(self):
+        """
+        Advance next_date by one interval and return the new date.
+        """
+        from datetime import timedelta
+        import calendar
+
+        if self.frequency == self.FREQ_DAILY:
+            self.next_date = self.next_date + timedelta(days=1 * self.interval)
+        elif self.frequency == self.FREQ_WEEKLY:
+            self.next_date = self.next_date + timedelta(weeks=1 * self.interval)
+        elif self.frequency == self.FREQ_MONTHLY:
+            # basic month increment
+            y, m = divmod(self.next_date.month - 1 + self.interval, 12)
+            new_month = (m + 1)
+            new_year = self.next_date.year + y
+            day = min(self.next_date.day, calendar.monthrange(new_year, new_month)[1])
+            self.next_date = self.next_date.replace(year=new_year, month=new_month, day=day)
+        self.save(update_fields=["next_date"])
+        return self.next_date
