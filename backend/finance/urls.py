@@ -9,6 +9,6 @@ router.register(r"transactions", TransactionViewSet, basename="transaction")
 router.register(r"budgets", BudgetViewSet, basename="budget")
 
 urlpatterns = [
-    path("", include(router.urls)),
     path("transactions/import/", TransactionImportView.as_view(), name="transactions-import"),
-    ]
+    path("", include(router.urls)),
+]
