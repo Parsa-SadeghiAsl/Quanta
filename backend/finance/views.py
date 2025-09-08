@@ -7,9 +7,11 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework import viewsets, permissions, status
 from rest_framework.generics import GenericAPIView
+from django.db.models import Sum, Q
 from .models import Account, Category, Transaction, Budget
 from .serializers import AccountSerializer, CategorySerializer, TransactionSerializer, BudgetSerializer
 from .permissions import IsOwner
+from rest_framework.permissions import IsAuthenticated
 
 
 DATE_FORMATS = ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y", "%m/%d/%Y")
@@ -43,9 +45,13 @@ class AccountViewSet(OwnerMixin, viewsets.ModelViewSet):
 
 class CategoryViewSet(OwnerMixin, viewsets.ModelViewSet):
     serializer_class = CategorySerializer
-    permission_classes = [permissions.IsAuthenticated, IsOwner]
-    queryset = Category.objects.all()
-
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        # Return categories where the user is the request user OR the user is null (system category)
+        return Category.objects.filter(
+            Q(user=self.request.user) | Q(user__isnull=True)
+        )
 
 class TransactionViewSet(OwnerMixin, viewsets.ModelViewSet):
     serializer_class = TransactionSerializer
@@ -139,3 +145,64 @@ class TransactionImportView(APIView):
                 continue
 
         return Response({"created": created, "skipped": skipped, "errors": errors})
+
+
+class DashboardSummaryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        today = datetime.date.today()
+        start_of_month = today.replace(day=1)
+
+        # Calculate total balance across all accounts
+        total_balance = Account.objects.filter(user=user).aggregate(total=Sum('balance'))['total'] or Decimal('0.00')
+
+        # Calculate income for the current month
+        monthly_income = Transaction.objects.filter(
+            user=user,
+            date__gte=start_of_month,
+            category__type=Category.TYPE_INCOME
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+
+        # Calculate expenses for the current month
+        monthly_expenses = Transaction.objects.filter(
+            user=user,
+            date__gte=start_of_month,
+            category__type=Category.TYPE_EXPENSE
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+
+        return Response({
+            'total_balance': total_balance,
+            'monthly_income': monthly_income,
+            'monthly_expenses': monthly_expenses,
+        })
+
+class SpendingByCategoryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        today = datetime.date.today()
+        start_of_month = today.replace(day=1)
+
+        spending_data = Transaction.objects.filter(
+            user=user,
+            date__gte=start_of_month,
+            category__type=Category.TYPE_EXPENSE
+        ).values('category__name', 'category__color').annotate(
+            amount=Sum('amount')
+        ).order_by('-amount')
+
+        # Format for the pie chart
+        chart_data = [
+            {
+                "name": item['category__name'],
+                "amount": item['amount'],
+                "color": item['category__color'] or '#cccccc', # Default color
+                "legendFontColor": "#7F7F7F",
+                "legendFontSize": 15
+            }
+            for item in spending_data
+        ]
+        return Response(chart_data)
