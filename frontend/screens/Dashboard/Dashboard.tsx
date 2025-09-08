@@ -71,6 +71,7 @@ export default function Dashboard() {
           onDismiss={closeMenu}
           anchor={<Appbar.Action icon="dots-vertical" onPress={openMenu} />}
         >
+          <Menu.Item onPress={() => navigateTo('Categories')} title="Manage Categories" />
           <Menu.Item onPress={() => navigateTo('Accounts')} title="My Accounts" />
           <Menu.Item onPress={() => navigateTo('Transactions')} title="All Transactions" />
           <Menu.Item onPress={() => { closeMenu(); signOut(); }} title="Logout" />

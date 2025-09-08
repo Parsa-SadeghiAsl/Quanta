@@ -7,12 +7,12 @@ import { useAuth } from '../hooks/useAuth';
 import SignIn from '../screens/Auth/SignIn';
 import SignUp from '../screens/Auth/SignUp';
 import Dashboard from '../screens/Dashboard/Dashboard';
-// Import your new placeholder screens
 import AccountsScreen from '../screens/AccountsScreen';
 import TransactionsScreen from '../screens/TransactionsScreen';
 import AddTransactionScreen from '../screens/AddTransactionScreen';
+import AddAccountScreen from '../screens/AddAccountScreen';
+import CategoriesScreen from '../screens/CategoriesScreen';
 
-// This defines all the screens available in your app
 export type RootStackParamList = {
   SignIn: undefined;
   SignUp: undefined;
@@ -20,6 +20,8 @@ export type RootStackParamList = {
   Accounts: undefined;
   Transactions: undefined;
   AddTransaction: undefined;
+  AddAccount: undefined;
+  Categories: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -28,26 +30,23 @@ export default function AppNavigator() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return null; // Or a splash screen component
+    return null;
   }
 
   return (
     <NavigationContainer>
       <Stack.Navigator>
         {user ? (
-          // Screens available only to logged-in users
           <>
-            <Stack.Screen
-              name="Dashboard"
-              component={Dashboard}
-              options={{ headerShown: false }} // We use a custom header inside the dashboard
-            />
+            <Stack.Screen name="Dashboard" component={Dashboard} options={{ headerShown: false }} />
             <Stack.Screen name="Accounts" component={AccountsScreen} />
             <Stack.Screen name="Transactions" component={TransactionsScreen} options={{ title: 'All Transactions' }} />
             <Stack.Screen name="AddTransaction" component={AddTransactionScreen} options={{ title: 'Add Transaction' }} />
+            {/* --- Add New Screens to the Stack --- */}
+            <Stack.Screen name="AddAccount" component={AddAccountScreen} options={{ title: 'Add New Account' }} />
+            <Stack.Screen name="Categories" component={CategoriesScreen} options={{ title: 'Manage Categories' }} />
           </>
         ) : (
-          // Auth screens
           <>
             <Stack.Screen name="SignIn" component={SignIn} options={{ title: 'Sign In' }} />
             <Stack.Screen name="SignUp" component={SignUp} options={{ title: 'Create Account' }} />

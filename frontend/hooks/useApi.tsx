@@ -34,10 +34,32 @@ export const useCreateTransaction = () => {
     return useMutation({
         mutationFn: (newTransaction) => client.post('/transactions/', newTransaction),
         onSuccess: () => {
-            // Invalidate and refetch relevant queries to show the new data
             queryClient.invalidateQueries({ queryKey: ['transactions'] });
             queryClient.invalidateQueries({ queryKey: ['summary'] });
             queryClient.invalidateQueries({ queryKey: ['accounts'] });
+            queryClient.invalidateQueries({ queryKey: ['spendingByCategory'] });
+            queryClient.invalidateQueries({ queryKey: ['budgets'] });
+        },
+    });
+};
+
+export const useCreateAccount = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (newAccount) => client.post('/accounts/', newAccount),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['accounts'] });
+            queryClient.invalidateQueries({ queryKey: ['summary'] });
+        },
+    });
+};
+
+export const useCreateCategory = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (newCategory) => client.post('/categories/', newCategory),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['categories'] });
         },
     });
 };

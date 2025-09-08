@@ -1,7 +1,12 @@
 import React from 'react';
 import { View, FlatList, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import { List, FAB, PaperProvider, MD3LightTheme as DefaultTheme } from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/AppNavigator';
 import { useGetAccounts } from '../hooks/useApi';
+
+type AccountsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Accounts'>;
 
 const theme = {
   ...DefaultTheme,
@@ -23,6 +28,7 @@ const AccountItem = ({ item }) => (
 );
 
 export default function AccountsScreen() {
+  const navigation = useNavigation<AccountsScreenNavigationProp>();
   const { data: accounts, isLoading, isError } = useGetAccounts();
 
   if (isLoading) {
@@ -45,7 +51,7 @@ export default function AccountsScreen() {
         <FAB
           icon="plus"
           style={styles.fab}
-          onPress={() => console.log('Navigate to Add Account Screen')}
+          onPress={() => navigation.navigate('AddAccount')}
         />
       </View>
     </PaperProvider>
@@ -66,6 +72,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
+    paddingVertical: 8,
   },
   balance: {
     alignSelf: 'center',
