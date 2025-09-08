@@ -33,7 +33,12 @@ class Category(models.Model):
     TYPE_INCOME = "income"
     TYPE_CHOICES = ((TYPE_EXPENSE, "Expense"), (TYPE_INCOME, "Income"))
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="categories")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="categories",
+        null=True,  # Allow this to be null for system categories
+        blank=True)
     name = models.CharField(max_length=120)
     type = models.CharField(max_length=10, choices=TYPE_CHOICES)
     color = models.CharField(max_length=7, blank=True, default="#cccccc")
