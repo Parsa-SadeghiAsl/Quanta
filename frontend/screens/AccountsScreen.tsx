@@ -1,102 +1,64 @@
 import React from 'react';
-import { View, FlatList, StyleSheet, ActivityIndicator, Text } from 'react-native';
-import { List, FAB, PaperProvider, MD3LightTheme as DefaultTheme } from 'react-native-paper';
+import { View, FlatList, StyleSheet } from 'react-native';
+import { Text, Card, FAB, ActivityIndicator } from 'react-native-paper';
+import { useAccounts } from '../hooks/useApi';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
-import { useGetAccounts } from '../hooks/useApi';
 
-type AccountsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Accounts'>;
-
-const theme = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    primary: '#6200ee',
-    accent: '#03dac4',
-  },
-};
-
-const AccountItem = ({ item }) => (
-  <List.Item
-    title={item.name}
-    description={`Type: ${item.account_type}`}
-    right={() => <Text style={styles.balance}>${parseFloat(item.balance).toFixed(2)}</Text>}
-    left={() => <List.Icon icon="bank" />}
-    style={styles.item}
-  />
-);
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Accounts'>;
 
 export default function AccountsScreen() {
-  const navigation = useNavigation<AccountsScreenNavigationProp>();
-  const { data: accounts, isLoading, isError } = useGetAccounts();
+    const navigation = useNavigation<NavigationProp>();
+    const { data: accounts, isLoading, isError } = useAccounts();
 
-  if (isLoading) {
-    return <ActivityIndicator style={styles.loader} size="large" />;
-  }
+    if (isLoading) {
+        return <ActivityIndicator animating={true} style={styles.loader} />;
+    }
 
-  if (isError) {
-    return <Text style={styles.errorText}>Failed to load accounts.</Text>;
-  }
+    if (isError || !accounts) {
+        return <Text style={styles.errorText}>Failed to load accounts.</Text>;
+    }
 
-  return (
-    <PaperProvider theme={theme}>
-      <View style={styles.container}>
-        <FlatList
-          data={accounts}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => <AccountItem item={item} />}
-          ListEmptyComponent={<Text style={styles.emptyText}>No accounts found. Add one to get started!</Text>}
-        />
-        <FAB
-          icon="plus"
-          style={styles.fab}
-          onPress={() => navigation.navigate('AddAccount')}
-        />
-      </View>
-    </PaperProvider>
-  );
+    return (
+        <View style={styles.container}>
+            {accounts.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                    <Text variant="titleLarge">No Accounts Yet</Text>
+                    <Text variant="bodyMedium" style={styles.centerText}>Tap the '+' button to add your first bank or cash account.</Text>
+                </View>
+            ) : (
+                <FlatList
+                    data={accounts}
+                    keyExtractor={(item) => item.id.toString()}
+                    renderItem={({ item }) => (
+                        <Card style={styles.card}>
+                            <Card.Title
+                                title={item.name}
+                                subtitle={item.account_type}
+                                right={(props) => <Text {...props} style={styles.balance}>${item.balance}</Text>}
+                            />
+                        </Card>
+                    )}
+                />
+            )}
+            <FAB
+                style={styles.fab}
+                icon="plus"
+                onPress={() => navigation.navigate('AddAccount')}
+            />
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  loader: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  item: {
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    paddingVertical: 8,
-  },
-  balance: {
-    alignSelf: 'center',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginRight: 15,
-  },
-  fab: {
-    position: 'absolute',
-    margin: 16,
-    right: 0,
-    bottom: 0,
-  },
-  emptyText: {
-      textAlign: 'center',
-      marginTop: 50,
-      fontSize: 16,
-      color: 'gray',
-  },
-  errorText: {
-      textAlign: 'center',
-      marginTop: 50,
-      fontSize: 16,
-      color: 'red',
-  }
+    container: { flex: 1, backgroundColor: '#f4f6f8' },
+    loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    errorText: { textAlign: 'center', marginTop: 20 },
+    emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+    centerText: { textAlign: 'center' },
+    fab: { position: 'absolute', margin: 16, right: 0, bottom: 15 },
+    card: { marginHorizontal: 16, marginTop: 16 },
+    balance: { fontSize: 18, fontWeight: 'bold', marginRight: 16 },
 });
 

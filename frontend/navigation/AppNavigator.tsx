@@ -11,7 +11,12 @@ import AccountsScreen from '../screens/AccountsScreen';
 import TransactionsScreen from '../screens/TransactionsScreen';
 import AddTransactionScreen from '../screens/AddTransactionScreen';
 import AddAccountScreen from '../screens/AddAccountScreen';
+import RecurringTransactionsScreen from '../screens/RecurringTransactionsScreen';
+import AddRecurringTransactionScreen from '../screens/AddRecurringTransactionScreen';
+import BudgetsScreen from '../screens/BudgetsScreen';
+import AddBudgetScreen from '../screens/AddBudgetScreen';
 import CategoriesScreen from '../screens/CategoriesScreen';
+import AddCategoryScreen from '../screens/AddCategoryScreen';
 
 export type RootStackParamList = {
   SignIn: undefined;
@@ -21,7 +26,12 @@ export type RootStackParamList = {
   Transactions: undefined;
   AddTransaction: undefined;
   AddAccount: undefined;
+  RecurringTransactions: undefined;
+  AddRecurringTransaction: undefined;
+  Budgets: undefined;
+  AddBudget: { item?: any };
   Categories: undefined;
+  AddCategory: { item?: any };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -42,9 +52,14 @@ export default function AppNavigator() {
             <Stack.Screen name="Accounts" component={AccountsScreen} />
             <Stack.Screen name="Transactions" component={TransactionsScreen} options={{ title: 'All Transactions' }} />
             <Stack.Screen name="AddTransaction" component={AddTransactionScreen} options={{ title: 'Add Transaction' }} />
-            {/* --- Add New Screens to the Stack --- */}
             <Stack.Screen name="AddAccount" component={AddAccountScreen} options={{ title: 'Add New Account' }} />
             <Stack.Screen name="Categories" component={CategoriesScreen} options={{ title: 'Manage Categories' }} />
+            <Stack.Screen name="RecurringTransactions" component={RecurringTransactionsScreen} options={{ title: 'Recurring' }} />
+            <Stack.Screen name="AddRecurringTransaction" component={AddRecurringTransactionScreen} options={{ title: 'Add Recurring' }} />
+            <Stack.Screen name="Budgets" component={BudgetsScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="AddBudget" component={AddBudgetScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="AddCategory" component={AddCategoryScreen} />
+
           </>
         ) : (
           <>

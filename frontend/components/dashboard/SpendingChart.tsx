@@ -6,9 +6,17 @@ const screenWidth = Dimensions.get('window').width;
 
 const chartConfig = {
   color: (opacity = 1) => `rgba(26, 255, 146, ${opacity})`,
+
 };
 
 export default function SpendingChart({ data }) {
+  // selecting top 5 data with most spending
+  const topSpendingData = data.slice(0, 5);
+  // add dollar sign for amount in legend:
+  topSpendingData.forEach((item) => {
+    item.legend = `$${item.amount.toFixed(2)} - ${item.name}`;
+  });
+
   return (
     <View style={styles.card}>
       <Text style={styles.title}>Spending by Category</Text>
@@ -16,14 +24,14 @@ export default function SpendingChart({ data }) {
         <Text style={styles.emptyText}>No spending data for this period.</Text>
       ) : (
         <PieChart
-          data={data}
+          data={topSpendingData}
           width={screenWidth - 40}
           height={220}
           chartConfig={chartConfig}
           accessor="amount"
           backgroundColor="transparent"
-          paddingLeft="15"
-          absolute // Renders the actual values, not percentages
+          paddingLeft="10"
+           // Renders the actual values, not percentages
         />
       )}
     </View>

@@ -1,20 +1,19 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, ActivityIndicator, FlatList } from 'react-native';
-import { Appbar, Menu } from 'react-native-paper';
+import React, { useState, useMemo, useCallback } from 'react';
+import { View, StyleSheet, ActivityIndicator, FlatList, Text, TouchableOpacity } from 'react-native';
+import { Appbar, Button, Menu } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { useAuth } from '../../hooks/useAuth';
+import { format, subMonths, addMonths } from 'date-fns';
 
-// --- Data Fetching ---
 import {
-  useGetDashboardSummary,
-  useGetSpendingByCategory,
-  useGetBudgetProgress,
-  useGetRecentTransactions,
+  useDashboardSummary,
+  useSpendingByCategory,
+  useBudgetProgress,
+  useRecentTransactions,
 } from '../../hooks/useApi';
 
-// --- Child Components ---
 import SummaryCard from '../../components/dashboard/SummaryCard';
 import SpendingChart from '../../components/dashboard/SpendingChart';
 import BudgetProgress from '../../components/dashboard/BudgetProgress';
@@ -22,8 +21,6 @@ import RecentTransactions from '../../components/dashboard/RecentTransactions';
 
 type DashboardNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Dashboard'>;
 
-// This component holds all the non-list content to avoid nested scroll views.
-// It receives all the fetched data as props and passes it down to the child components.
 const DashboardContent = ({ summary, spending, budgets, transactions, navigation }) => (
   <>
     <View style={styles.summaryContainer}>
@@ -37,58 +34,85 @@ const DashboardContent = ({ summary, spending, budgets, transactions, navigation
   </>
 );
 
+const MonthSelector = ({ currentDate, setCurrentDate }) => {
+    const handlePrevMonth = () => setCurrentDate(prev => subMonths(prev, 1));
+    const handleNextMonth = () => setCurrentDate(prev => addMonths(prev, 1));
+
+    return (
+        <View style={styles.monthSelector}>
+            <Appbar.Action icon="chevron-left" onPress={handlePrevMonth} />
+            <Text style={styles.monthText}>{format(currentDate, 'MMMM yyyy')}</Text>
+            <Appbar.Action icon="chevron-right" onPress={handleNextMonth} />
+        </View>
+    );
+};
+
+
 export default function Dashboard() {
   const navigation = useNavigation<DashboardNavigationProp>();
   const { signOut } = useAuth();
   const [menuVisible, setMenuVisible] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date());
 
-  // Fetch all dashboard data in parallel using our custom hooks.
-  // Each hook manages its own caching and refetching.
-  const { data: summary, isLoading: summaryLoading } = useGetDashboardSummary();
-  const { data: spending, isLoading: spendingLoading } = useGetSpendingByCategory();
-  const { data: budgets, isLoading: budgetsLoading } = useGetBudgetProgress();
-  const { data: transactions, isLoading: transactionsLoading } = useGetRecentTransactions();
+  const selectedYear = useMemo(() => currentDate.getFullYear(), [currentDate]);
+  const selectedMonth = useMemo(() => currentDate.getMonth() + 1, [currentDate]);
 
-  // Show a single loading indicator until all data has been fetched.
+  const { data: summary, isLoading: summaryLoading, isFetching: summaryFetching, refetch: refetchSummary } = useDashboardSummary(selectedYear, selectedMonth);
+  const { data: spending, isLoading: spendingLoading, isFetching: spendingFetching, refetch: refetchSpending } = useSpendingByCategory(selectedYear, selectedMonth);
+  const { data: budgets, isLoading: budgetsLoading, isFetching: budgetsFetching, refetch: refetchBudgets } = useBudgetProgress(selectedYear, selectedMonth);
+  const { data: transactions, isLoading: transactionsLoading, isFetching: transactionsFetching, refetch: refetchTransactions } = useRecentTransactions();
+
   const isLoading = summaryLoading || spendingLoading || budgetsLoading || transactionsLoading;
+  const isRefreshing = summaryFetching || spendingFetching || budgetsFetching || transactionsFetching;
+
+  const onRefresh = useCallback(async () => {
+    await Promise.all([
+        refetchSummary(),
+        refetchSpending(),
+        refetchBudgets(),
+        refetchTransactions(),
+    ]);
+  }, [refetchSummary, refetchSpending, refetchBudgets, refetchTransactions]);
+
 
   const openMenu = () => setMenuVisible(true);
   const closeMenu = () => setMenuVisible(false);
 
   const navigateTo = (screen: keyof RootStackParamList) => {
-    closeMenu();
     navigation.navigate(screen);
+    closeMenu();
   };
 
   return (
     <View style={styles.container}>
-      {/* Custom Header with Title, Add Button, and Expandable Menu */}
       <Appbar.Header>
         <Appbar.Content title="Dashboard" />
-        <Appbar.Action icon="plus" onPress={() => navigateTo('AddTransaction')} />
+        <Button icon="plus" mode="contained" onPress={() => navigateTo('AddTransaction')}>
+          New Transaction
+        </Button>
         <Menu
           visible={menuVisible}
           onDismiss={closeMenu}
           anchor={<Appbar.Action icon="dots-vertical" onPress={openMenu} />}
         >
-          <Menu.Item onPress={() => navigateTo('Categories')} title="Manage Categories" />
           <Menu.Item onPress={() => navigateTo('Accounts')} title="My Accounts" />
           <Menu.Item onPress={() => navigateTo('Transactions')} title="All Transactions" />
-          <Menu.Item onPress={() => { closeMenu(); signOut(); }} title="Logout" />
+          <Menu.Item onPress={() => navigateTo('RecurringTransactions')} title="Recurring" />
+          <Menu.Item onPress={() => navigateTo('Budgets')} title= "Budgets" />
+          <Menu.Item onPress={() => navigateTo('Categories')} title="Manage Categories" />
+          <Menu.Item onPress={() => signOut()} title="Logout" />
         </Menu>
       </Appbar.Header>
 
+      <MonthSelector currentDate={currentDate} setCurrentDate={setCurrentDate} />
+
       {isLoading ? (
-        // Display a centered loading spinner while data is being fetched.
-        <ActivityIndicator size="large" style={styles.loader} />
+        <ActivityIndicator style={styles.loader} size="large" />
       ) : (
-        // Use a FlatList to render the content, which is best practice for performance.
         <FlatList
-          style={styles.list}
-          data={[]} // The list itself is empty because all content is in the header.
-          keyExtractor={() => 'dashboard_list'}
+          data={[]}
+          keyExtractor={() => 'key'}
           renderItem={null}
-          // All visual components are placed inside the ListHeaderComponent.
           ListHeaderComponent={
             <DashboardContent
               summary={summary}
@@ -98,6 +122,8 @@ export default function Dashboard() {
               navigation={navigation}
             />
           }
+          onRefresh={onRefresh}
+          refreshing={isRefreshing}
         />
       )}
     </View>
@@ -107,21 +133,33 @@ export default function Dashboard() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f4f6f8',
-  },
-  loader: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  list: {
-    flex: 1,
-  },
-  summaryContainer: {
+    backgroundColor: '#f4f6f8' 
+    },
+    
+  loader: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+    },
+
+  summaryContainer: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-around', 
+    padding: 10 
+    },
+
+  monthSelector: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 10,
-    paddingTop: 20,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    paddingHorizontal: 10,
   },
+
+  monthText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+
 });
 

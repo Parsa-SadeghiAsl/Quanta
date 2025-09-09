@@ -1,99 +1,98 @@
-import React, { useState } from 'react';
-import { View, FlatList, StyleSheet, Alert, Modal, Text } from 'react-native';
-import { List, FAB, TextInput, Button, SegmentedButtons } from 'react-native-paper';
-import { useGetCategories, useCreateCategory } from '../hooks/useApi';
-
-const CategoryItem = ({ item }) => (
-  <List.Item
-    title={item.name}
-    left={() => <List.Icon icon="tag" color={item.color} />}
-    style={item.type === 'expense' ? styles.expenseItem : styles.incomeItem}
-    titleStyle={styles.itemTitle}
-  />
-);
+import React, { useState, useCallback } from 'react';
+import { View, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, Card, ActivityIndicator, IconButton, FAB, Dialog, Portal, Button } from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
+import { useUserCategories, useDeleteCategory } from '../hooks/useApi';
 
 export default function CategoriesScreen() {
-  const [modalVisible, setModalVisible] = useState(false);
-  const [newName, setNewName] = useState('');
-  const [newType, setNewType] = useState('expense');
-  
-  const { data: categories, isLoading } = useGetCategories();
-  const createCategoryMutation = useCreateCategory();
+    const navigation = useNavigation();
+    const { data: categories, isLoading, isFetching, refetch } = useUserCategories();
+    const deleteMutation = useDeleteCategory();
 
-  const handleSave = () => {
-    if (!newName) {
-      Alert.alert('Error', 'Category name cannot be empty.');
-      return;
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [dialogVisible, setDialogVisible] = useState(false);
+
+    const onRefresh = useCallback(() => { refetch(); }, [refetch]);
+
+    const handleLongPress = (category) => {
+        setSelectedCategory(category);
+        setDialogVisible(true);
+    };
+
+    const handleEdit = () => {
+        setDialogVisible(false);
+        navigation.navigate('AddCategory', { item: selectedCategory });
+    };
+
+    const handleDelete = () => {
+        deleteMutation.mutate(selectedCategory.id, {
+            onSuccess: () => setDialogVisible(false),
+        });
+    };
+
+    if (isLoading) {
+        return <ActivityIndicator animating={true} style={styles.loader} />;
     }
-    createCategoryMutation.mutate({
-      name: newName,
-      type: newType,
-      color: newType === 'expense' ? '#FF6347' : '#00FA9A', // A default color
-    }, {
-      onSuccess: () => {
-        setNewName('');
-        setModalVisible(false);
-      },
-      onError: () => Alert.alert('Error', 'Failed to save category.')
-    });
-  };
 
-  return (
-    <View style={styles.container}>
-      <FlatList
-        data={categories}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => <CategoryItem item={item} />}
-        refreshing={isLoading}
-      />
-      <FAB
-        icon="plus"
-        style={styles.fab}
-        onPress={() => setModalVisible(true)}
-      />
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalView}>
-            <Text style={styles.modalTitle}>Add New Category</Text>
-            <TextInput
-              label="Category Name"
-              value={newName}
-              onChangeText={setNewName}
-              mode="outlined"
-              style={styles.input}
+    return (
+        <View style={styles.container}>
+            <FlatList
+                data={categories}
+                keyExtractor={(item) => item.id.toString()}
+                onRefresh={onRefresh}
+                refreshing={isFetching}
+                ListEmptyComponent={() => (
+                    <View style={styles.emptyContainer}>
+                        <Text variant="titleLarge">No Custom Categories</Text>
+                        <Text variant="bodyMedium" style={styles.centerText}>Tap the '+' button to add your first one.</Text>
+                    </View>
+                )}
+                renderItem={({ item }) => (
+                    <Card style={styles.card}>
+                        <Card.Title
+                            title={item.name}
+                            subtitle={item.type}
+                            right={(props) =>
+                            <IconButton {...props} icon="dots-vertical" onPress={() => handleLongPress(item)} />}
+                            left={(props) => <View {...props} style={[styles.colorDot, { backgroundColor: item.color }]} />}
+                        />
+                    </Card>
+                )}
             />
-            <SegmentedButtons
-              value={newType}
-              onValueChange={setNewType}
-              buttons={[
-                { value: 'expense', label: 'Expense' },
-                { value: 'income', label: 'Income' },
-              ]}
-              style={styles.input}
+            <FAB
+                icon="plus"
+                style={styles.fab}
+                onPress={() => navigation.navigate('AddCategory')}
             />
-            <Button mode="contained" onPress={handleSave} loading={createCategoryMutation.isPending}>Save</Button>
-            <Button onPress={() => setModalVisible(false)} style={{marginTop: 10}}>Cancel</Button>
-          </View>
+            <Portal>
+                <Dialog visible={dialogVisible} onDismiss={() => setDialogVisible(false)}>
+                    <Dialog.Title>Manage Category</Dialog.Title>
+                    <Dialog.Content>
+                        <Text>What would you like to do with "{selectedCategory?.name}"?</Text>
+                    </Dialog.Content>
+                    <Dialog.Actions>
+                        <Button onPress={handleEdit}>Edit</Button>
+                        <Button onPress={handleDelete} loading={deleteMutation.isLoading}>Delete</Button>
+                        <Button onPress={() => setDialogVisible(false)}>Cancel</Button>
+                    </Dialog.Actions>
+                </Dialog>
+            </Portal>
         </View>
-      </Modal>
-    </View>
-  );
+    );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  fab: { position: 'absolute', margin: 16, right: 0, bottom: 0 },
-  expenseItem: { backgroundColor: '#FFF0F0', marginVertical: 4, marginHorizontal: 8, borderRadius: 5 },
-  incomeItem: { backgroundColor: '#F0FFF0', marginVertical: 4, marginHorizontal: 8, borderRadius: 5 },
-  itemTitle: { fontWeight: 'bold' },
-  // Modal styles
-  modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
-  modalView: { width: '85%', margin: 20, backgroundColor: 'white', borderRadius: 20, padding: 35, alignItems: 'stretch', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4, elevation: 5 },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 15, textAlign: 'center' },
-  input: { marginBottom: 15 },
+    container: { flex: 1, backgroundColor: '#f4f6f8' },
+    loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+    centerText: { textAlign: 'center', marginTop: 8 },
+    card: { marginHorizontal: 16, marginTop: 16 },
+    fab: { position: 'absolute', margin: 16, right: 0, bottom: 15 },
+    colorDot: {
+        width: 30,
+        height: 30,
+        borderRadius: 15,
+        marginLeft: 10,
+    },
 });
+

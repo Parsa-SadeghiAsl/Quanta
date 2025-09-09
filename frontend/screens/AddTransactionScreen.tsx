@@ -4,7 +4,7 @@ import { TextInput, Button, SegmentedButtons, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 
-import { useGetAccounts, useGetCategories, useCreateTransaction } from '../hooks/useApi';
+import { useAccounts, useCategories, useCreateTransaction } from '../hooks/useApi';
 
 export default function AddTransactionScreen() {
   const navigation = useNavigation();
@@ -14,8 +14,8 @@ export default function AddTransactionScreen() {
   const [selectedAccount, setSelectedAccount] = useState<number | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
 
-  const { data: accounts, isLoading: accountsLoading } = useGetAccounts();
-  const { data: categories, isLoading: categoriesLoading } = useGetCategories();
+  const { data: accounts, isLoading: accountsLoading } = useAccounts();
+  const { data: categories, isLoading: categoriesLoading } = useCategories();
   const createTransactionMutation = useCreateTransaction();
 
   const handleSave = () => {

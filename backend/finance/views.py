@@ -1,15 +1,17 @@
 import csv
 import io
 from decimal import Decimal
+from django.utils import timezone
 from datetime import datetime
+from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework import viewsets, permissions, status
 from rest_framework.generics import GenericAPIView
 from django.db.models import Sum, Q
-from .models import Account, Category, Transaction, Budget
-from .serializers import AccountSerializer, CategorySerializer, TransactionSerializer, BudgetSerializer
+from .models import Account, Category, Transaction, Budget, RecurringTransaction
+from .serializers import AccountSerializer, CategorySerializer, TransactionSerializer, BudgetSerializer, RecurringTransactionSerializer
 from .permissions import IsOwner
 from rest_framework.permissions import IsAuthenticated
 
@@ -43,20 +45,34 @@ class AccountViewSet(OwnerMixin, viewsets.ModelViewSet):
     queryset = Account.objects.all()
 
 
-class CategoryViewSet(OwnerMixin, viewsets.ModelViewSet):
+class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def get_queryset(self):
-        # Return categories where the user is the request user OR the user is null (system category)
+        # The main queryset returns both system and user-specific categories
         return Category.objects.filter(
             Q(user=self.request.user) | Q(user__isnull=True)
         )
 
+    @action(detail=False, methods=['get'])
+    def mine(self, request):
+        """
+        A custom endpoint to return ONLY the categories created by the
+        currently authenticated user.
+        """
+        user_categories = Category.objects.filter(user=request.user)
+        serializer = self.get_serializer(user_categories, many=True)
+        return Response(serializer.data)
+
+    def perform_create(self, serializer):
+        # When a user creates a category, it must be assigned to them
+        serializer.save(user=self.request.user)
+
 class TransactionViewSet(OwnerMixin, viewsets.ModelViewSet):
     serializer_class = TransactionSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwner]
-    queryset = Transaction.objects.select_related("account", "category").all()
+    queryset = Transaction.objects.select_related("account", "category").all()    
 
 
 class BudgetViewSet(OwnerMixin, viewsets.ModelViewSet):
@@ -145,64 +161,44 @@ class TransactionImportView(APIView):
                 continue
 
         return Response({"created": created, "skipped": skipped, "errors": errors})
+    
+    
 
+class RecurringTransactionViewSet(OwnerMixin, viewsets.ModelViewSet):
+    """
+    API endpoint for recurring transactions.
+    """
+    serializer_class = RecurringTransactionSerializer
+    permission_classes = [permissions.IsAuthenticated, IsOwner]
+    queryset = RecurringTransaction.objects.all()
+    
+    def perform_create(self, serializer):
+        """
+        Overrides the default create behavior. After saving a new recurring
+        transaction, it immediately checks if the first transaction is due.
+        """
+        # First, save the new recurring transaction instance
+        # The serializer's `create` method will set the initial `next_date`
+        recurring_instance = serializer.save(user=self.request.user)
 
-class DashboardSummaryView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        user = request.user
-        today = datetime.date.today()
-        start_of_month = today.replace(day=1)
-
-        # Calculate total balance across all accounts
-        total_balance = Account.objects.filter(user=user).aggregate(total=Sum('balance'))['total'] or Decimal('0.00')
-
-        # Calculate income for the current month
-        monthly_income = Transaction.objects.filter(
-            user=user,
-            date__gte=start_of_month,
-            category__type=Category.TYPE_INCOME
-        ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
-
-        # Calculate expenses for the current month
-        monthly_expenses = Transaction.objects.filter(
-            user=user,
-            date__gte=start_of_month,
-            category__type=Category.TYPE_EXPENSE
-        ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
-
-        return Response({
-            'total_balance': total_balance,
-            'monthly_income': monthly_income,
-            'monthly_expenses': monthly_expenses,
-        })
-
-class SpendingByCategoryView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        user = request.user
-        today = datetime.date.today()
-        start_of_month = today.replace(day=1)
-
-        spending_data = Transaction.objects.filter(
-            user=user,
-            date__gte=start_of_month,
-            category__type=Category.TYPE_EXPENSE
-        ).values('category__name', 'category__color').annotate(
-            amount=Sum('amount')
-        ).order_by('-amount')
-
-        # Format for the pie chart
-        chart_data = [
-            {
-                "name": item['category__name'],
-                "amount": item['amount'],
-                "color": item['category__color'] or '#cccccc', # Default color
-                "legendFontColor": "#7F7F7F",
-                "legendFontSize": 15
-            }
-            for item in spending_data
-        ]
-        return Response(chart_data)
+        # Now, check if the first transaction should be created immediately
+        today = timezone.localdate()
+        if recurring_instance.next_date <= today:
+            while True:
+                
+                # Create the first transaction
+                Transaction.objects.create(
+                    user=recurring_instance.user,
+                    account=recurring_instance.account,
+                    category=recurring_instance.category,
+                    amount=recurring_instance.amount,
+                    date=recurring_instance.next_date,
+                    notes=f"Recurring: {recurring_instance.notes or recurring_instance.category}",
+                )
+                # Advance the date for the next cycle
+                print(recurring_instance.next_date)
+                recurring_instance.advance_next_date()
+                if recurring_instance.next_date > today:
+                    break
+                else:
+                    continue

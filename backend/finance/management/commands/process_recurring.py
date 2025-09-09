@@ -1,26 +1,36 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from finance.models import RecurringTransaction, Transaction
-from decimal import Decimal
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
-    help = "Process due recurring transactions and create Transaction entries."
+    help = 'Processes all due recurring transactions and creates standard Transaction objects.'
 
     def handle(self, *args, **options):
         today = timezone.localdate()
-        due = RecurringTransaction.objects.filter(active=True).filter(next_date__lte=today)
+        # Get all recurring items that are due to be processed
+        due_items = RecurringTransaction.objects.filter(next_date__lte=today)
+        
         created_count = 0
-        for r in due:
-            # create transactions for each missed occurrence up to today
-            while r.next_date <= today and (r.end_date is None or r.next_date <= r.end_date):
-                Transaction.objects.create(
-                    user=r.user,
-                    account=r.account,
-                    category=r.category,
-                    amount=r.amount,
-                    date=r.next_date,
-                    notes=f"Recurring: {r.pk}",
-                )
-                created_count += 1
-                r.advance_next_date()
-        self.stdout.write(self.style.SUCCESS(f"Created {created_count} transactions."))
+        for item in due_items:
+            # Check if the recurring transaction has expired
+            if item.next_date and item.next_date > item.next_date:
+                continue
+
+            # Create a new standard transaction
+            Transaction.objects.create(
+                user=item.user,
+                account=item.account,
+                category=item.category,
+                amount=item.amount,
+                date=item.next_date,
+                notes=f"Recurring: {item.notes or 'Monthly'}"
+            )
+            created_count += 1
+            
+            # Advance the 'next_date' for the next cycle
+            item.advance_next_date()
+        
+        self.stdout.write(self.style.SUCCESS(f'Successfully created {created_count} recurring transactions.'))

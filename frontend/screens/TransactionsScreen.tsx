@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, FlatList, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import { List, FAB, PaperProvider, MD3LightTheme as DefaultTheme } from 'react-native-paper';
-import { useGetAllTransactions } from '../hooks/useApi';
+import { useAllTransactions } from '../hooks/useApi';
 import { useNavigation } from '@react-navigation/native';
 
 const theme = {
@@ -15,10 +15,10 @@ const theme = {
 
 const TransactionItem = ({ item }) => {
     const amount = parseFloat(item.amount);
-    const isIncome = amount > 0;
+    const isIncome = item.category_type === 'income';
     return (
         <List.Item
-            title={item.notes || 'Transaction'}
+            title={item.notes || item.category_name || 'Transaction'}
             description={new Date(item.date).toLocaleDateString()}
             right={() => (
                 <Text style={isIncome ? styles.amountPositive : styles.amountNegative}>
@@ -32,12 +32,16 @@ const TransactionItem = ({ item }) => {
 };
 
 export default function TransactionsScreen() {
-  const navigation = useNavigation();
-  const { data: transactions, isLoading, isError } = useGetAllTransactions();
+    const navigation = useNavigation();
+    const { data: transactions, isLoading, isError, isFetching, refetch } = useAllTransactions();
 
-  if (isLoading) {
-    return <ActivityIndicator style={styles.loader} size="large" />;
-  }
+    const onRefresh = useCallback(() => {
+        refetch();
+    }, [refetch]);
+
+    if (isLoading) {
+        return <ActivityIndicator animating={true} style={styles.loader} />;
+    }
   
   if (isError) {
     return <Text style={styles.errorText}>Failed to load transactions.</Text>;
@@ -51,6 +55,8 @@ export default function TransactionsScreen() {
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => <TransactionItem item={item} />}
           ListEmptyComponent={<Text style={styles.emptyText}>No transactions recorded yet.</Text>}
+          onRefresh={onRefresh}
+          refreshing={isFetching}
         />
         <FAB
           icon="plus"
@@ -65,10 +71,10 @@ export default function TransactionsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  item: { backgroundColor: 'white', borderBottomWidth: 1, borderBottomColor: '#e0e0e0' },
+  item: { backgroundColor: 'white', borderBottomWidth: 1, borderBottomColor: '#e0e0e0', paddingLeft: 15 },
   amountPositive: { alignSelf: 'center', fontSize: 16, fontWeight: 'bold', marginRight: 15, color: 'green' },
   amountNegative: { alignSelf: 'center', fontSize: 16, fontWeight: 'bold', marginRight: 15, color: 'red' },
-  fab: { position: 'absolute', margin: 16, right: 0, bottom: 0 },
+  fab: { position: 'absolute', margin: 16, right: 0, bottom: 15 },
   emptyText: { textAlign: 'center', marginTop: 50, fontSize: 16, color: 'gray' },
   errorText: { textAlign: 'center', marginTop: 50, fontSize: 16, color: 'red' }
 });

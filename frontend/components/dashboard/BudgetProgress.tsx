@@ -20,10 +20,10 @@ export default function BudgetProgress({ data }) {
         data.map((item, index) => (
           <View key={index} style={styles.budgetItem}>
             <View style={styles.budgetTextContainer}>
-              <Text style={styles.categoryText}>{item.category}</Text>
-              <Text style={styles.amountText}>${item.spent} of ${item.total}</Text>
+              <Text style={styles.categoryText}>{item.category_details.name}</Text>
+              <Text style={styles.amountText}>${item.spent} of ${item.amount}</Text>
             </View>
-            <ProgressBar spent={item.spent} total={item.total} />
+            <ProgressBar spent={item.spent} total={item.amount} />
           </View>
         ))
       )}
