@@ -24,9 +24,11 @@ type DashboardNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Da
 const DashboardContent = ({ summary, spending, budgets, transactions, navigation }) => (
   <>
     <View style={styles.summaryContainer}>
-      <SummaryCard title="Total Balance" value={`$${summary?.total_balance || '0.00'}`} />
       <SummaryCard title="Income" value={`+$${summary?.monthly_income || '0.00'}`} positive />
       <SummaryCard title="Expenses" value={`-$${summary?.monthly_expenses || '0.00'}`} negative />
+    </View>
+    <View style={styles.summaryContainer}>
+      <SummaryCard title="Total Balance" value={`$${summary?.total_balance || '0.00'}`} />
     </View>
     <SpendingChart data={spending} />
     <BudgetProgress data={budgets} />
