@@ -196,7 +196,6 @@ class RecurringTransactionViewSet(OwnerMixin, viewsets.ModelViewSet):
                     notes=f"Recurring: {recurring_instance.notes or recurring_instance.category}",
                 )
                 # Advance the date for the next cycle
-                print(recurring_instance.next_date)
                 recurring_instance.advance_next_date()
                 if recurring_instance.next_date > today:
                     break

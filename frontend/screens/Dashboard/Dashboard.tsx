@@ -100,6 +100,7 @@ export default function Dashboard() {
           <Menu.Item onPress={() => navigateTo('RecurringTransactions')} title="Recurring" />
           <Menu.Item onPress={() => navigateTo('Budgets')} title= "Budgets" />
           <Menu.Item onPress={() => navigateTo('Categories')} title="Manage Categories" />
+          <Menu.Item onPress={() => navigateTo('Profile')} title="My Profile" />
           <Menu.Item onPress={() => signOut()} title="Logout" />
         </Menu>
       </Appbar.Header>

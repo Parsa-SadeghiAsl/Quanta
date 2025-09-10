@@ -24,7 +24,6 @@ export type Transaction = {
   notes: string;
   account: number;
   category: number | null;
-  // Details from nested serializers
   category_details?: Category;
   account_details?: Account;
 };
@@ -52,6 +51,24 @@ export type RecurringTransaction = {
     account_details?: Account;
     category_details?: Category;
 };
+
+export interface Profile {
+    username: string;
+    email: string;
+    avatar: string | null;
+}
+
+export interface UpdateProfilePayload {
+    username?: string;
+    avatar?: { uri: string; name: string; type: string };
+}
+
+export interface ChangePasswordPayload {
+    old_password: string;
+    new_password: string;
+    new_password_confirm: string;
+}
+
 
 // --- Payload Types for Mutations ---
 export type NewTransactionPayload = { /* ... */ };
@@ -193,6 +210,42 @@ export const useDeleteBudget = () => {
 
         // Hook for recurring transactions
 export const useRecurringTransactions = () => useQuery<RecurringTransaction[]>({ queryKey: ['recurringTransactions'], queryFn: () => client.get('/recurring-transactions/').then((res) => res.data) });
+
+
+// --- PROFILE HOOKS ---
+export const useProfile = () =>
+    useQuery<Profile>({
+        queryKey: ['profile'],
+        queryFn: () => client.get('/auth/me/').then((res) => res.data),
+    });
+
+export const useUpdateProfile = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (payload: UpdateProfilePayload) => {
+            const formData = new FormData();
+            if (payload.username) {
+                formData.append('username', payload.username);
+            }
+            if (payload.avatar) {
+                formData.append('avatar', payload.avatar as any);
+            }
+            return client.patch('/auth/me/', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['profile'] });
+        },
+    });
+};
+
+export const useChangePassword = () => {
+    return useMutation({
+        mutationFn: (payload: ChangePasswordPayload) =>
+            client.post('/auth/change-password/', payload),
+    });
+};
 
 
 // --- MUTATION HOOKS (Create, Update, Delete Data) ---

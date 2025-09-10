@@ -21,7 +21,9 @@ env_file = BASE_DIR.parent / ".env"
 env = environ.Env(DEBUG=(bool, False))
 if env_file.exists():
     environ.Env.read_env(str(env_file))
-
+    
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR.parent / 'mediafiles'
 
 SECRET_KEY = env("DJANGO_SECRET_KEY")# Quick-start development settings - unsuitable for production
 DEBUG = env("DJANGO_DEBUG")
