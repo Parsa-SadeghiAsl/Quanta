@@ -7,3 +7,4 @@ pytest-django
 djangorestframework-simplejwt
 django-environ
 drf-spectacular
+Pillow
