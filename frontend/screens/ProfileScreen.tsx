@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Alert } from 'react-native';
-import { Appbar, Avatar, Button, Card, TextInput, Text, ActivityIndicator, HelperText } from 'react-native-paper';
+import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { Avatar, Button, Card, TextInput, ActivityIndicator, Text, HelperText } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { useForm, Controller } from 'react-hook-form';
@@ -109,77 +109,83 @@ export default function ProfileScreen() {
 
     return (
         <View style={styles.container}>
-            <ScrollView contentContainerStyle={styles.content}>
-                <Card style={styles.card}>
-                    <Card.Content style={styles.avatarContainer}>
-                        <Avatar.Image
-                            size={100}
-                            source={getAvatarSource()}
-                        />
-                        <Button mode="text" onPress={pickImage} style={styles.button}>Change Picture</Button>
-                    </Card.Content>
+            <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
+                    style={styles.container}
+                    keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
+            >
+                <ScrollView contentContainerStyle={styles.content}>
+                    <Card style={styles.card}>
+                        <Card.Content style={styles.avatarContainer}>
+                            <Avatar.Image
+                                size={100}
+                                source={getAvatarSource()}
+                            />
+                            <Button mode="text" onPress={pickImage} style={styles.button}>Change Picture</Button>
+                        </Card.Content>
 
-                    <Card.Title title="Edit Profile" />
-                    <Card.Content>
-                        <Controller
-                            control={profileControl}
-                            name="username"
-                            render={({ field: { onChange, onBlur, value } }) => (
-                                <TextInput label="Username" value={value} onBlur={onBlur} onChangeText={onChange} error={!!profileErrors.username} style={styles.input} />
-                            )}
-                        />
-                         {profileErrors.username && <HelperText type="error">{profileErrors.username.message}</HelperText>}
-                        <Button
-                            mode="contained"
-                            onPress={handleProfileSubmit(onProfileSave)}
-                            loading={updateProfileMutation.isLoading}
-                            style={styles.button}
-                        >
-                            Save Profile
-                        </Button>
-                    </Card.Content>
-                </Card>
+                        <Card.Content>
+                        <Text style={styles.textLabel}>Edit Profile</Text>
+                            <Controller
+                                control={profileControl}
+                                name="username"
+                                render={({ field: { onChange, onBlur, value } }) => (
+                                    <TextInput label="Username" value={value} onBlur={onBlur} onChangeText={onChange} error={!!profileErrors.username} style={styles.input} />
+                                )}
+                            />
+                            {profileErrors.username && <HelperText type="error">{profileErrors.username.message}</HelperText>}
+                            <Button
+                                mode="contained"
+                                onPress={handleProfileSubmit(onProfileSave)}
+                                loading={updateProfileMutation.isLoading}
+                                style={styles.button}
+                            >
+                                Save Profile
+                            </Button>
+                        </Card.Content>
+                    </Card>
 
-                <Card style={styles.card}>
-                    <Card.Title title="Change Password" />
-                    <Card.Content>
-                        <Controller
-                            control={passwordControl}
-                            name="old_password"
-                            render={({ field: { onChange, onBlur, value } }) => (
-                                <TextInput label="Current Password" value={value} onBlur={onBlur} onChangeText={onChange} secureTextEntry error={!!passwordErrors.old_password} style={styles.input} />
-                            )}
-                        />
-                        {passwordErrors.old_password && <HelperText type="error">{passwordErrors.old_password.message}</HelperText>}
-                        <Controller
-                            control={passwordControl}
-                            name="new_password"
-                            render={({ field: { onChange, onBlur, value } }) => (
-                                <TextInput label="New Password" value={value} onBlur={onBlur} onChangeText={onChange} secureTextEntry error={!!passwordErrors.new_password} style={styles.input} />
-                            )}
-                        />
-                        {passwordErrors.new_password && <HelperText type="error">{passwordErrors.new_password.message}</HelperText>}
+                    <Card style={styles.card}>
+                        <Card.Title title="Change Password" />
+                        <Card.Content>
+                            <Controller
+                                control={passwordControl}
+                                name="old_password"
+                                render={({ field: { onChange, onBlur, value } }) => (
+                                    <TextInput label="Current Password" value={value} onBlur={onBlur} onChangeText={onChange} secureTextEntry error={!!passwordErrors.old_password} style={styles.input} />
+                                )}
+                            />
+                            {passwordErrors.old_password && <HelperText type="error">{passwordErrors.old_password.message}</HelperText>}
+                            <Controller
+                                control={passwordControl}
+                                name="new_password"
+                                render={({ field: { onChange, onBlur, value } }) => (
+                                    <TextInput label="New Password" value={value} onBlur={onBlur} onChangeText={onChange} secureTextEntry error={!!passwordErrors.new_password} style={styles.input} />
+                                )}
+                            />
+                            {passwordErrors.new_password && <HelperText type="error">{passwordErrors.new_password.message}</HelperText>}
 
-                        <Controller 
-                            control={passwordControl} 
-                            name="new_password_confirm" 
-                            render={({ field: { onChange, onBlur, value } }) => (
-                            <TextInput label="Confirm New Password" value={value} onBlur={onBlur} onChangeText={onChange} secureTextEntry error={!!passwordErrors.new_password_confirm} style={styles.input} />
-                            )} 
-                        />
-                        {passwordErrors.new_password_confirm && <HelperText type="error">{passwordErrors.new_password_confirm.message}</HelperText>}
+                            <Controller 
+                                control={passwordControl} 
+                                name="new_password_confirm" 
+                                render={({ field: { onChange, onBlur, value } }) => (
+                                    <TextInput label="Confirm New Password" value={value} onBlur={onBlur} onChangeText={onChange} secureTextEntry error={!!passwordErrors.new_password_confirm} style={styles.input} />
+                                )} 
+                            />
+                            {passwordErrors.new_password_confirm && <HelperText type="error">{passwordErrors.new_password_confirm.message}</HelperText>}
 
-                        <Button
-                            mode="contained"
-                            onPress={handlePasswordSubmit(onPasswordChange)}
-                            loading={changePasswordMutation.isLoading}
-                            style={styles.button}
-                        >
-                            Change Password
-                        </Button>
-                    </Card.Content>
-                </Card>
-            </ScrollView>
+                            <Button
+                                mode="contained"
+                                onPress={handlePasswordSubmit(onPasswordChange)}
+                                loading={changePasswordMutation.isLoading}
+                                style={styles.button}
+                            >
+                                Change Password
+                            </Button>
+                        </Card.Content>
+                    </Card>
+                </ScrollView>
+            </KeyboardAvoidingView>
         </View>
     );
 }
@@ -192,5 +198,11 @@ const styles = StyleSheet.create({
     avatarContainer: { alignItems: 'center', paddingVertical: 20 },
     input: { marginBottom: 8 },
     button: { marginTop: 16 },
+    textLabel: {
+        fontSize: 16,
+        color: '#666',
+        marginBottom: 5,
+        marginLeft: 5,
+    },
 });
 
