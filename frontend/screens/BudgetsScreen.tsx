@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { View, FlatList, StyleSheet } from 'react-native';
+import { View, Alert, FlatList, StyleSheet } from 'react-native';
 import { Text, Portal, Dialog, Button, Card, FAB, Appbar, IconButton, ProgressBar, MD3Colors } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { useBudgets, useDeleteBudget } from '../hooks/useApi';
@@ -24,9 +24,19 @@ export default function BudgetsScreen() {
     };
 
     const handleDelete = () => {
-        deleteMutation.mutate(selectedBudget.id, {
-            onSuccess: () => setDialogVisible(false),
-        });
+        Alert.alert(
+            "Delete Recurring Transaction",
+            "Are you sure you want to delete this? This action cannot be undone.",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Delete",
+                    onPress: () => {deleteMutation.mutate(selectedBudget.id, {onSuccess: () => setDialogVisible(false)}), setDialogVisible(false)},
+                    
+                    style: "destructive",
+                },
+            ]
+        );
     };
 
     return (
