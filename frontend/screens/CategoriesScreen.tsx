@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Alert, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text, Card, ActivityIndicator, IconButton, FAB, Dialog, Portal, Button } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { useUserCategories, useDeleteCategory } from '../hooks/useApi';
@@ -25,9 +25,19 @@ export default function CategoriesScreen() {
     };
 
     const handleDelete = () => {
-        deleteMutation.mutate(selectedCategory.id, {
-            onSuccess: () => setDialogVisible(false),
-        });
+        Alert.alert(
+            "Delete Recurring Transaction",
+            "Are you sure you want to delete this? This action cannot be undone.",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Delete",
+                    onPress: () => {deleteMutation.mutate(selectedCategory.id, {onSuccess: () => setDialogVisible(false)}), setDialogVisible(false)},
+                    
+                    style: "destructive",
+                },
+            ]
+        );
     };
 
     if (isLoading) {
