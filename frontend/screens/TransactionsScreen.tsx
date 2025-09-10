@@ -71,7 +71,7 @@ export default function TransactionsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  item: { backgroundColor: 'white', borderBottomWidth: 1, borderBottomColor: '#e0e0e0', paddingLeft: 15 },
+  item: { backgroundColor: 'white', borderBottomWidth: 1, borderBottomColor: '#e0e0e0', paddingLeft: 20 },
   amountPositive: { alignSelf: 'center', fontSize: 16, fontWeight: 'bold', marginRight: 15, color: 'green' },
   amountNegative: { alignSelf: 'center', fontSize: 16, fontWeight: 'bold', marginRight: 15, color: 'red' },
   fab: { position: 'absolute', margin: 16, right: 0, bottom: 15 },
