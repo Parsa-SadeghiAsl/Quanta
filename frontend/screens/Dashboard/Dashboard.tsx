@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { useAuth } from '../../hooks/useAuth';
-import { format, subMonths, addMonths } from 'date-fns';
+import { format, subMonths, addMonths, isSameMonth, isAfter } from 'date-fns';
 
 import {
   useDashboardSummary,
@@ -34,15 +34,23 @@ const DashboardContent = ({ summary, spending, budgets, transactions, navigation
   </>
 );
 
-const MonthSelector = ({ currentDate, setCurrentDate }) => {
+const MonthSelector = ({ currentDate, setCurrentDate, isNextDisabled }) => {
     const handlePrevMonth = () => setCurrentDate(prev => subMonths(prev, 1));
-    const handleNextMonth = () => setCurrentDate(prev => addMonths(prev, 1));
+    const handleNextMonth = () => {
+        if (!isNextDisabled) {
+            setCurrentDate(prev => addMonths(prev, 1));
+        }
+    };
 
     return (
         <View style={styles.monthSelector}>
             <Appbar.Action icon="chevron-left" onPress={handlePrevMonth} />
             <Text style={styles.monthText}>{format(currentDate, 'MMMM yyyy')}</Text>
-            <Appbar.Action icon="chevron-right" onPress={handleNextMonth} />
+            <Appbar.Action
+                icon="chevron-right"
+                onPress={handleNextMonth}
+                disabled={isNextDisabled}
+            />
         </View>
     );
 };
@@ -64,6 +72,11 @@ export default function Dashboard() {
 
   const isLoading = summaryLoading || spendingLoading || budgetsLoading || transactionsLoading;
   const isRefreshing = summaryFetching || spendingFetching || budgetsFetching || transactionsFetching;
+
+  const isNextMonthDisabled = useMemo(() => {
+    const now = new Date();
+    return isSameMonth(currentDate, now) || isAfter(currentDate, now);
+  }, [currentDate]);
 
   const onRefresh = useCallback(async () => {
     await Promise.all([
@@ -105,7 +118,11 @@ export default function Dashboard() {
         </Menu>
       </Appbar.Header>
 
-      <MonthSelector currentDate={currentDate} setCurrentDate={setCurrentDate} />
+      <MonthSelector
+          currentDate={currentDate}
+          setCurrentDate={setCurrentDate}
+          isNextDisabled={isNextMonthDisabled}
+      />
 
       {isLoading ? (
         <ActivityIndicator style={styles.loader} size="large" />
