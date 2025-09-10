@@ -1,6 +1,6 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { View, FlatList, StyleSheet, Alert } from 'react-native';
-import { Text, ActivityIndicator, FAB, Card, IconButton } from 'react-native-paper';
+import { Text, ActivityIndicator, Button, Portal, Dialog, FAB, Card, IconButton } from 'react-native-paper';
 import { useRecurringTransactions, useDeleteRecurringTransaction } from '../hooks/useApi';
 import { format, parseISO } from 'date-fns';
 import { useNavigation } from '@react-navigation/native';
@@ -14,7 +14,10 @@ export default function RecurringTransactionsScreen() {
     const { data: recurring, isLoading, isError } = useRecurringTransactions();
     const deleteMutation = useDeleteRecurringTransaction();
 
-    const handleDelete = (id: number) => {
+    const [selectedRecurring, setSelectedRecurring] = useState(null);
+    const [dialogVisible, setDialogVisible] = useState(false);
+
+    const handleDelete = () => {
         Alert.alert(
             "Delete Recurring Transaction",
             "Are you sure you want to delete this? This action cannot be undone.",
@@ -22,7 +25,8 @@ export default function RecurringTransactionsScreen() {
                 { text: "Cancel", style: "cancel" },
                 {
                     text: "Delete",
-                    onPress: () => deleteMutation.mutate(id),
+                    onPress: () => {deleteMutation.mutate(selectedRecurring.id, {onSuccess: () => setDialogVisible(false)}), setDialogVisible(false)},
+                    
                     style: "destructive",
                 },
             ]
@@ -36,6 +40,16 @@ export default function RecurringTransactionsScreen() {
     if (isError || !recurring) {
         return <Text style={styles.errorText}>Failed to load recurring transactions.</Text>;
     }
+
+    const handleLongPress = (recurring) => {
+        setSelectedRecurring(recurring);
+        setDialogVisible(true);
+    };
+
+    const handleEdit = () => {
+        setDialogVisible(false);
+        navigation.navigate('AddRecurringTransaction', { item: selectedRecurring });
+    };
 
     return (
         <View style={styles.container}>
@@ -53,12 +67,8 @@ export default function RecurringTransactionsScreen() {
                             <Card.Title
                                 title={item.notes || 'Monthly Recurring'}
                                 subtitle={`Next on: ${format(parseISO(item.next_date), 'MMM dd, yyyy')}`}
-                                right={(props) => (
-                                    <View style={styles.actions}>
-                                        <IconButton {...props} icon="pencil" onPress={() => navigation.navigate('AddRecurringTransaction', { item })} />
-                                        <IconButton {...props} icon="delete" onPress={() => handleDelete(item.id)} />
-                                    </View>
-                                )}
+                                right={(props) =>
+                                    <IconButton {...props} icon="dots-vertical" onPress={() => handleLongPress(item)} />}
                             />
                             <Card.Content>
                                 <Text style={[styles.amount, item.category_details?.type === 'income' ? styles.income : styles.expense]}>
@@ -75,6 +85,19 @@ export default function RecurringTransactionsScreen() {
                 icon="plus"
                 onPress={() => navigation.navigate('AddRecurringTransaction', { item: null })}
             />
+            <Portal>
+                <Dialog visible={dialogVisible} onDismiss={() => setDialogVisible(false)}>
+                    <Dialog.Title>Manage Recurring Transactions</Dialog.Title>
+                    <Dialog.Content>
+                        <Text>What would you like to do with "{selectedRecurring?.notes || 'Monthly Recurring'}"?</Text>
+                    </Dialog.Content>
+                    <Dialog.Actions>
+                        <Button onPress={handleEdit}>Edit</Button>
+                        <Button onPress={handleDelete} loading={deleteMutation.isLoading}>Delete</Button>
+                        <Button onPress={() => setDialogVisible(false)}>Cancel</Button>
+                    </Dialog.Actions>
+                </Dialog>
+            </Portal>
         </View>
     );
 }
