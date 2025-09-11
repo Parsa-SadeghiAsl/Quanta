@@ -100,26 +100,6 @@ export default function Dashboard() {
 
   return (
     <View style={styles.container}>
-      <Appbar.Header>
-        <Appbar.Content title="Dashboard" />
-        <Button icon="plus" mode="contained" onPress={() => navigateTo('AddTransaction')}>
-          New Transaction
-        </Button>
-        <Menu
-          visible={menuVisible}
-          onDismiss={closeMenu}
-          anchor={<Appbar.Action icon="dots-vertical" onPress={openMenu} />}
-        >
-          <Menu.Item onPress={() => navigateTo('Accounts')} title="My Accounts" />
-          <Menu.Item onPress={() => navigateTo('Transactions')} title="All Transactions" />
-          <Menu.Item onPress={() => navigateTo('RecurringTransactions')} title="Recurring" />
-          <Menu.Item onPress={() => navigateTo('Budgets')} title= "Budgets" />
-          <Menu.Item onPress={() => navigateTo('Categories')} title="Manage Categories" />
-          <Menu.Item onPress={() => navigateTo('Profile')} title="My Profile" />
-          <Menu.Item onPress={() => signOut()} title="Logout" />
-        </Menu>
-      </Appbar.Header>
-
       <MonthSelector
           currentDate={currentDate}
           setCurrentDate={setCurrentDate}

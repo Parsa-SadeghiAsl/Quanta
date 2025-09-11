@@ -52,8 +52,14 @@ export default function SignUp() {
         onChangeText={setPassword}
         value={password}
       />
+
+      <View style={styles.buttonContainer}>
       <Button title="Register" onPress={handleSubmit} />
+      </View>
+      <View style={styles.buttonContainer}>
       <Button title="Back to Sign In" onPress={() => navigation.goBack()} />
+      </View>
+
     </View>
   );
 }
@@ -63,4 +69,6 @@ const styles = StyleSheet.create({
   title: { fontSize: 24, marginBottom: 20, textAlign: "center" },
   input: { borderWidth: 1, borderColor: "#ccc", marginBottom: 15, padding: 10, borderRadius: 8 },
   error: { color: "red", marginBottom: 10, textAlign: "center" },
+  buttonContainer: { marginVertical: 5 },
+
 });
