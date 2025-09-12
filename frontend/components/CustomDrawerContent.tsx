@@ -5,7 +5,6 @@ import { Avatar, Text, Divider, Appbar } from 'react-native-paper';
 import { useAuth } from '../hooks/useAuth';
 import { useProfile } from '../hooks/useApi';
 
-// IMPORTANT: Replace with your actual backend URL for images
 const API_URL = 'http://192.168.1.102:8000'; 
 
 export default function CustomDrawerContent(props) {
@@ -16,34 +15,33 @@ export default function CustomDrawerContent(props) {
     if (profile?.avatar) {
       return { uri: `${API_URL}${profile.avatar}` };
     }
-    // Return a local asset or a placeholder URI
-    return require('../assets/icon.png'); // Make sure you have a default icon here
+    return require('../assets/icon.png');
   };
 
   return (
-        <DrawerContentScrollView {...props}>
-        <View style={styles.profileContainer}>
-            <Avatar.Image
-            size={80}
-            source={getAvatarSource()}
-            />
-            <Text variant="titleLarge" style={styles.username}>{profile?.username || 'User'}</Text>
-            <Text variant="bodyMedium" style={styles.email}>{profile?.email}</Text>
-        </View>
-        <Divider />
-        <DrawerItemList {...props} />
-        <DrawerItem
-            label="Logout"
-            onPress={() => signOut()}
-            labelStyle={{ fontWeight: 'bold', color: '#e0002dff' }}
-        />
-        </DrawerContentScrollView>
+    <DrawerContentScrollView {...props}>
+      <View style={styles.profileContainer}>
+          <Avatar.Image
+          size={80}
+          source={getAvatarSource()}
+          />
+          <Text variant="titleLarge" style={styles.username}>{profile?.username || 'User'}</Text>
+          <Text variant="bodyMedium" style={styles.email}>{profile?.email}</Text>
+      </View>
+      <Divider style={{marginBottom: 5}} />
+      <DrawerItemList {...props} />
+      <DrawerItem
+          label="Logout"
+          onPress={() => signOut()}
+          labelStyle={{ fontWeight: 'bold', color: '#e0002dff' }}
+      />
+    </DrawerContentScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   profileContainer: {
-    padding: 20,
+    padding: 10,
     alignItems: 'center',
   },
   username: {

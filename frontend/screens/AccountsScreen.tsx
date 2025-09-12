@@ -22,12 +22,7 @@ export default function AccountsScreen() {
 
     return (
         <View style={styles.container}>
-            {accounts.length === 0 ? (
-                <View style={styles.emptyContainer}>
-                    <Text variant="titleLarge">No Accounts Yet</Text>
-                    <Text variant="bodyMedium" style={styles.centerText}>Tap the '+' button to add your first bank or cash account.</Text>
-                </View>
-            ) : (
+
                 <FlatList
                     data={accounts}
                     keyExtractor={(item) => item.id.toString()}
@@ -40,8 +35,13 @@ export default function AccountsScreen() {
                             />
                         </Card>
                     )}
-                />
-            )}
+                    ListEmptyComponent={() => (
+                        <View style={styles.emptyContainer}>
+                            <Text variant="titleLarge">No Accounts Yet</Text>
+                            <Text variant="bodyMedium" style={styles.centerText}>Tap the '+' button to add your first one.</Text>
+                        </View>
+                    )}                        
+                /> 
             <FAB
                 style={styles.fab}
                 icon="plus"

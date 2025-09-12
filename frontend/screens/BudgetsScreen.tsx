@@ -41,11 +41,6 @@ export default function BudgetsScreen() {
 
     return (
         <View style={styles.container}>
-            <Appbar.Header>
-                <Appbar.BackAction onPress={() => navigation.goBack()} />
-                <Appbar.Content title="My Budgets" />
-            </Appbar.Header>
-
             <FlatList
                 data={budgets}
                 keyExtractor={(item) => item.id.toString()}
@@ -64,6 +59,12 @@ export default function BudgetsScreen() {
                             </View>
                         </Card.Content>
                     </Card>
+                )}
+                ListEmptyComponent={() => (
+                    <View style={styles.emptyContainer}>
+                        <Text variant="titleLarge">No Budgets Yet</Text>
+                        <Text variant="bodyMedium" style={styles.centerText}>Tap the '+' button to add your first one.</Text>
+                    </View>
                 )}
             />
 
@@ -93,6 +94,8 @@ const styles = StyleSheet.create({
     container: { flex: 1 },
     card: { margin: 16 },
     fab: { position: 'absolute', margin: 16, right: 0, bottom: 15 },
+    emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+    centerText: { textAlign: 'center', marginTop: 8 },
     progressContainer: { marginTop: 8 },
     progressText: { textAlign: 'right', marginBottom: 4, color: '#666' },
     progressBar: { height: 8, borderRadius: 4 },

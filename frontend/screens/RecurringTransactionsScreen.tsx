@@ -53,12 +53,6 @@ export default function RecurringTransactionsScreen() {
 
     return (
         <View style={styles.container}>
-            {recurring.length === 0 ? (
-                <View style={styles.emptyContainer}>
-                    <Text variant="titleLarge">No Recurring Transactions</Text>
-                    <Text variant="bodyMedium" style={styles.centerText}>Tap the '+' button to add your first passive income or expense.</Text>
-                </View>
-            ) : (
                 <FlatList
                     data={recurring}
                     keyExtractor={(item) => item.id.toString()}
@@ -78,8 +72,14 @@ export default function RecurringTransactionsScreen() {
                             </Card.Content>
                         </Card>
                     )}
+                    ListEmptyComponent={() => (
+                        <View style={styles.emptyContainer}>
+                            <Text variant="titleLarge">No Recurrings Yet</Text>
+                            <Text variant="bodyMedium" style={styles.centerText}>Tap the '+' button to add your first one.</Text>
+                        </View>
+                    )}
                 />
-            )}
+            
             <FAB
                 style={styles.fab}
                 icon="plus"

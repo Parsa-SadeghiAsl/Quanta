@@ -7,6 +7,7 @@ import { RootStackParamList } from '../../navigation/AppNavigator';
 import { useAuth } from '../../hooks/useAuth';
 import { format, subMonths, addMonths, isSameMonth, isAfter } from 'date-fns';
 
+
 import {
   useDashboardSummary,
   useSpendingByCategory,
@@ -89,44 +90,35 @@ export default function Dashboard() {
     ]);
   }, [refetchSummary, refetchSpending, refetchBudgets, refetchTransactions]);
 
-
-  const openMenu = () => setMenuVisible(true);
-  const closeMenu = () => setMenuVisible(false);
-
-  const navigateTo = (screen: keyof RootStackParamList) => {
-    navigation.navigate(screen);
-    closeMenu();
-  };
-
   return (
-    <View style={styles.container}>
-      <MonthSelector
-          currentDate={currentDate}
-          setCurrentDate={setCurrentDate}
-          isNextDisabled={isNextMonthDisabled}
-      />
-
-      {isLoading ? (
-        <ActivityIndicator style={styles.loader} size="large" />
-      ) : (
-        <FlatList
-          data={[]}
-          keyExtractor={() => 'key'}
-          renderItem={null}
-          ListHeaderComponent={
-            <DashboardContent
-              summary={summary}
-              spending={spending}
-              budgets={budgets}
-              transactions={transactions}
-              navigation={navigation}
-            />
-          }
-          onRefresh={onRefresh}
-          refreshing={isRefreshing}
+      <View style={styles.container}>
+        <MonthSelector
+            currentDate={currentDate}
+            setCurrentDate={setCurrentDate}
+            isNextDisabled={isNextMonthDisabled}
         />
-      )}
-    </View>
+
+        {isLoading ? (
+          <ActivityIndicator style={styles.loader} size="large" />
+        ) : (
+          <FlatList
+            data={[]}
+            keyExtractor={() => 'key'}
+            renderItem={null}
+            ListHeaderComponent={
+              <DashboardContent
+                summary={summary}
+                spending={spending}
+                budgets={budgets}
+                transactions={transactions}
+                navigation={navigation}
+              />
+            }
+            onRefresh={onRefresh}
+            refreshing={isRefreshing}
+          />
+        )}
+      </View>
   );
 }
 

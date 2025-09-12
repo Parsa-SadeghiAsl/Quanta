@@ -11,12 +11,10 @@ type DashboardNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Da
 
 
 const TransactionItem = ({ item }) => {
-  // Use the new `category_type` field from the API to determine the style
   const isIncome = item.category_type === 'income';
   const amountStyle = isIncome ? styles.itemAmountPositive : styles.itemAmountNegative;
   const amountPrefix = isIncome ? '+' : '-';
   
-  // Format the date for better readability
   const formattedDate = format(new Date(item.date), 'MMM dd');
 
   return (
@@ -45,11 +43,11 @@ export default function RecentTransactions({ data }) {
         </TouchableOpacity>
       </View>
       <FlatList
-        data={data} // Use the `data` prop passed from the Dashboard
+        data={data} 
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => <TransactionItem item={item} />}
         ListEmptyComponent={<Text style={styles.emptyText}>No recent transactions found.</Text>}
-        scrollEnabled={false} // Disable scrolling inside the main list
+        scrollEnabled={false}
       />
     </View>
   );

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from 'react-native-paper'
 import { createDrawerNavigator } from '@react-navigation/drawer';
@@ -41,7 +41,7 @@ export type RootStackParamList = {
   DrawerApp: undefined; 
 };
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
+const Stack = createStackNavigator<RootStackParamList>();
 const Drawer = createDrawerNavigator();
 
 // This stack contains all the screens accessible from the drawer
@@ -50,7 +50,7 @@ function AppDrawer() {
   return (
       <Drawer.Navigator
         drawerContent={(props) => <CustomDrawerContent {...props} />}
-        screenOptions={{ headerShown: true }}
+        screenOptions={{ headerShown: true, headerStatusBarHeight: 0 }}
         >
         <Drawer.Screen 
           name="Dashboard" 
@@ -59,14 +59,14 @@ function AppDrawer() {
             headerRight: () => (
             <Button style={styles.addBtton} icon="plus" mode="contained" onPress={() => navigation.navigate('AddTransaction')}>
               Transaction
-            </Button>)
+            </Button>),
           }}
         />
         <Drawer.Screen name="All Transactions" component={TransactionsScreen} />
         <Drawer.Screen name="My Accounts" component={AccountsScreen} />
         <Drawer.Screen name="Budgets" component={BudgetsScreen} />
         <Drawer.Screen name="Recurring" component={RecurringTransactionsScreen} />
-        <Drawer.Screen name="Manage Categories" component={CategoriesScreen} />
+        <Drawer.Screen name="Categories" component={CategoriesScreen} />
         <Drawer.Screen name="Profile" component={ProfileScreen} />
       </Drawer.Navigator>
   );
@@ -81,14 +81,15 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator>
+      <Stack.Navigator screenOptions={{headerShown: true, headerStatusBarHeight: 0}}>
         {user ? (
           <>
             <Stack.Screen name="DrawerApp" component={AppDrawer} options={{ headerShown: false }}/>
+            <Stack.Screen name="Transactions" component={TransactionsScreen}  />
             <Stack.Screen name="AddTransaction" component={AddTransactionScreen} options={{ title: 'Add Transaction' }} />
             <Stack.Screen name="AddAccount" component={AddAccountScreen} options={{ title: 'Add New Account' }} />
             <Stack.Screen name="AddRecurringTransaction" component={AddRecurringTransactionScreen} options={{ title: 'Add Recurring' }} />
-            <Stack.Screen name="AddBudget" component={AddBudgetScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="AddBudget" component={AddBudgetScreen} />
             <Stack.Screen name="AddCategory" component={AddCategoryScreen} />
 
           </>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Appbar, Button, TextInput, Text, Card, useTheme, HelperText } from 'react-native-paper';
+import { Button, TextInput, Text, Card, useTheme, HelperText } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -73,10 +73,6 @@ export default function AddBudgetScreen() {
 
     return (
         <View style={styles.container}>
-            <Appbar.Header>
-                <Appbar.BackAction onPress={() => navigation.goBack()} />
-                <Appbar.Content title={isEditing ? 'Edit Budget' : 'Add Budget'} />
-            </Appbar.Header>
             <ScrollView>
                 <Card style={styles.card}>
                     <Card.Content>
