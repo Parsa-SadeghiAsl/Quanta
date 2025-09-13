@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-import { Avatar, Button, Card, TextInput, ActivityIndicator, Text, HelperText } from 'react-native-paper';
+import { Avatar, Button, IconButton, Card, TextInput, ActivityIndicator, Text, HelperText } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { useForm, Controller } from 'react-hook-form';
@@ -66,6 +66,10 @@ export default function ProfileScreen() {
             }
         };
 
+    const handleCancelPreview = () => {
+        setAvatar(null);
+    };
+
     const onProfileSave = (data) => {
         updateProfileMutation.mutate(
             { username: data.username, avatar },
@@ -99,11 +103,15 @@ export default function ProfileScreen() {
         return <ActivityIndicator style={styles.loader} />;
     }
     const getAvatarSource = () => {
-        // 2. If there's a saved avatar from the server, construct the full URL.
+
+        if (avatar?.uri) {
+            return  { uri: avatar.uri}
+        }
+
         if (profile?.avatar) {
             return { uri: `${API_BASE}${profile.avatar}` };
         }
-        // 3. Otherwise, show a placeholder.
+
         return require('../assets/icon.png');
     };
     console.log(getAvatarSource())
@@ -118,10 +126,22 @@ export default function ProfileScreen() {
                 <ScrollView contentContainerStyle={styles.content}>
                     <Card style={styles.card}>
                         <Card.Content style={styles.avatarContainer}>
+                        <View>
                             <Avatar.Image
                                 size={100}
                                 source={getAvatarSource()}
                             />
+                            {avatar && (
+                                <IconButton
+                                    icon="close"
+                                    style={styles.closeButton}
+                                    iconColor="#fff"
+                                    containerColor="rgba(0,0,0,0.5)"
+                                    size={12}
+                                    onPress={handleCancelPreview}
+                                />
+                            )}
+                        </View>
                             <Button mode="text" onPress={pickImage} style={styles.button}>Change Picture</Button>
                         </Card.Content>
 
@@ -204,6 +224,12 @@ const styles = StyleSheet.create({
         color: '#666',
         marginBottom: 5,
         marginLeft: 5,
+    },
+    closeButton: {
+        position: 'absolute',
+        top: -15,
+        right: -20,
+        zIndex: 1,
     },
 });
 
