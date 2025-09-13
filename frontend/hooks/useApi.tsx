@@ -247,6 +247,29 @@ export const useChangePassword = () => {
     });
 };
 
+// --- Import/Export Hooks ---
+
+export const useImportTransactions = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (formData: FormData) => client.post('/transactions/import_csv/', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        }),
+        onSuccess: () => {
+            
+            queryClient.invalidateQueries();
+        },
+    });
+};
+
+
+export const useExportTransactions = () => {
+    return useQuery({
+        queryKey: ['exportTransactions'],
+        queryFn: () => client.get('/transactions/export_csv/').then((res) => res.data),
+        enabled: false,
+    });
+};
 
 // --- MUTATION HOOKS (Create, Update, Delete Data) ---
 
