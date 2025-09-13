@@ -104,8 +104,9 @@ export default function ProfileScreen() {
             return { uri: `${API_BASE}${profile.avatar}` };
         }
         // 3. Otherwise, show a placeholder.
-        return { uri: 'https://placehold.co/100x100?text=User' };
+        return require('../assets/icon.png');
     };
+    console.log(getAvatarSource())
 
     return (
         <View style={styles.container}>
