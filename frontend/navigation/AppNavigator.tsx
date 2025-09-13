@@ -22,6 +22,7 @@ import CategoriesScreen from '../screens/CategoriesScreen';
 import AddCategoryScreen from '../screens/AddCategoryScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import CustomDrawerContent from '../components/CustomDrawerContent';
+import DataManagementScreen from '../screens/DataManagementScreen';
 
 export type RootStackParamList = {
   SignIn: undefined;
@@ -39,6 +40,7 @@ export type RootStackParamList = {
   AddCategory: { item?: any };
   Profile: undefined;
   DrawerApp: undefined; 
+  DataManagement: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -67,6 +69,7 @@ function AppDrawer() {
         <Drawer.Screen name="Budgets" component={BudgetsScreen} />
         <Drawer.Screen name="Recurring" component={RecurringTransactionsScreen} />
         <Drawer.Screen name="Categories" component={CategoriesScreen} />
+        <Drawer.Screen name="Data Management" component={DataManagementScreen} />
         <Drawer.Screen name="Profile" component={ProfileScreen} />
       </Drawer.Navigator>
   );
