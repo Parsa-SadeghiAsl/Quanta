@@ -32,7 +32,19 @@ export default function BudgetProgress({ data }) {
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: '#fff', borderRadius: 10, marginHorizontal: 20, marginBottom: 20, padding: 15 },
+  card: { 
+    backgroundColor: '#fff', 
+    borderRadius: 10, 
+    marginHorizontal: 20, 
+    marginBottom: 20, 
+    padding: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3, 
+  },
+  
   title: { fontSize: 16, fontWeight: 'bold', marginBottom: 15 },
   budgetItem: { marginBottom: 15 },
   budgetTextContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 },

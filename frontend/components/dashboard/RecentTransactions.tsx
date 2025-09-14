@@ -54,11 +54,22 @@ export default function RecentTransactions({ data }) {
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: '#fff', borderRadius: 10, marginHorizontal: 20, marginBottom: 20, padding: 15 },
+  card: { 
+    backgroundColor: '#fff', 
+    borderRadius: 10, 
+    marginHorizontal: 20, 
+    marginBottom: 20, 
+    padding: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3, 
+  },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
   title: { fontSize: 16, fontWeight: 'bold' },
   viewAll: { color: '#3498db', fontSize: 14 },
-  itemContainer: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#ecf0f1' },
+  itemContainer: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderTopWidth: 1, borderTopColor: '#ecf0f1' },
   itemNote: { fontSize: 16, fontWeight: '500' },
   itemDate: { fontSize: 12, color: '#7f8c8d', marginTop: 2 },
   itemAmountPositive: { fontSize: 16, color: '#2ecc71', fontWeight: 'bold' },

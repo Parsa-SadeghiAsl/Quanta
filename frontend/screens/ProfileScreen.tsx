@@ -21,7 +21,7 @@ const passwordSchema = z.object({
     new_password_confirm: z.string().min(1, 'Please confirm your new password'),
 }).refine((data) => data.new_password === data.new_password_confirm, {
     message: "Passwords don't match",
-    path: ["new_password_confirm"], // Set the error on the confirmation field
+    path: ["new_password_confirm"],
 });
 
 
@@ -114,7 +114,6 @@ export default function ProfileScreen() {
 
         return require('../assets/icon.png');
     };
-    console.log(getAvatarSource())
 
     return (
         <View style={styles.container}>
