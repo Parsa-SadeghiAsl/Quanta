@@ -14,13 +14,14 @@ const theme = {
 };
 
 const SpendingItem = ({ item, totalAmount }) => {
+    const percentage = item.amount*100/totalAmount;
     return (
         <List.Item
         title={item.fullName|| 'Transaction'}
         description={`$${item.amount}`}
         right={() => (
             <Text style={styles.amountNegative}>
-                    {((item.amount*100)/totalAmount).toFixed(0)}%
+                    {(percentage > 1) ? percentage.toFixed(0): '>1'}%
             </Text>
             )}
             left={(props) =><View>
@@ -44,7 +45,6 @@ export default function TransactionsScreen({}) {
     let total :number = 0;
     data.forEach(item => {
         total += item.amount;
-        console.log(total)
     });
 
 
