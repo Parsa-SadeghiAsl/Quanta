@@ -111,7 +111,7 @@ class SpendingByCategoryAnalyticsView(APIView):
             date__range=[start_of_month, end_of_month],
             category__type='expense'
         ).values(
-            'category__name', 'category__color'
+            'category__name', 'category__color', 'date'
         ).annotate(
             amount=Sum('amount')
         ).order_by('-amount')
@@ -119,11 +119,13 @@ class SpendingByCategoryAnalyticsView(APIView):
         # Format for react-native-chart-kit pie chart
         formatted_data = [
             {
-                'name': item["category__name"] or 'Uncategorized',
+                'fullName': item["category__name"] or 'Uncategorized',
+                'name': item["category__name"] if len(item["category__name"])< 10 else f'{item["category__name"][:10]}...',
                 'amount': item['amount'],
                 'color': item['category__color'] or '#cccccc',
                 'legendFontColor': '#7F7F7F',
                 'legendFontSize': 12,
+                'date': item['date'],
             }
             for item in spending_data
         ]

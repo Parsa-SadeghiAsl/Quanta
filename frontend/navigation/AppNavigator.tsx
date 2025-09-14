@@ -23,6 +23,7 @@ import AddCategoryScreen from '../screens/AddCategoryScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import CustomDrawerContent from '../components/CustomDrawerContent';
 import DataManagementScreen from '../screens/DataManagementScreen';
+import SpendingsScreen from '../screens/SpendingsScreen'
 
 export type RootStackParamList = {
   SignIn: undefined;
@@ -65,6 +66,7 @@ function AppDrawer() {
           }}
         />
         <Drawer.Screen name="All Transactions" component={TransactionsScreen} />
+        <Drawer.Screen name="Spendings" component={SpendingsScreen} />
         <Drawer.Screen name="My Accounts" component={AccountsScreen} />
         <Drawer.Screen name="Budgets" component={BudgetsScreen} />
         <Drawer.Screen name="Recurring" component={RecurringTransactionsScreen} />

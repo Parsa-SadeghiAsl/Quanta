@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity} from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
+import { useNavigation } from '@react-navigation/native';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -9,47 +10,64 @@ const chartConfig = {
 
 };
 
-export default function SpendingChart({ data }) {
-  // selecting top 5 data with most spending
+export default function SpendingChart({ data, month, year }) {
+  const navigation = useNavigation();
   const topSpendingData = data.slice(0, 5);
-  // add dollar sign for amount in legend:
-  topSpendingData.forEach((item) => {
-    item.legend = `$${item.amount.toFixed(2)} - ${item.name}`;
-  });
-
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>Spending by Category</Text>
-      {!data || data.length === 0 ? (
-        <Text style={styles.emptyText}>No spending data for this period.</Text>
-      ) : (
-        <PieChart
-          data={topSpendingData}
-          width={screenWidth - 40}
-          height={220}
-          chartConfig={chartConfig}
-          accessor="amount"
-          backgroundColor="transparent"
-          paddingLeft="10"
-           // Renders the actual values, not percentages
-        />
-      )}
+      <View style={styles.headerRow}>
+          <Text style={styles.title}>Spending by Category</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Spendings', { month, year })}>
+            <Text style={styles.viewAll}>View All</Text>
+          </TouchableOpacity>
+      </View>
+      <View style={styles.cardItems}>
+        {!data || data.length === 0 ? (
+          <Text style={styles.emptyText}>No spending data for this period.</Text>
+        ) : (
+          <PieChart
+            data={topSpendingData}
+            width={screenWidth - 70}
+            height={220}
+            chartConfig={chartConfig}
+            accessor="amount"
+            backgroundColor="transparent"
+            paddingLeft="10"
+          />
+        )}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+    viewAll: { 
+      color: '#3498db',
+      fontSize: 14,
+      paddingTop:5,
+    },
+
+    headerRow: { 
+      flexDirection: 'row', 
+      justifyContent: 'space-between', 
+      marginBottom: 5
+     },
+
   card: {
     backgroundColor: '#fff',
     borderRadius: 10,
     margin: 20,
     padding: 15,
-    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 3,
+  },
+
+  cardItems: {
+    alignItems: 'center',
+
   },
   title: {
     fontSize: 16,

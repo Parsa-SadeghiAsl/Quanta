@@ -4,7 +4,6 @@ import { Appbar, Button, Menu } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
-import { useAuth } from '../../hooks/useAuth';
 import { format, subMonths, addMonths, isSameMonth, isAfter } from 'date-fns';
 
 
@@ -22,8 +21,9 @@ import RecentTransactions from '../../components/dashboard/RecentTransactions';
 
 type DashboardNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Dashboard'>;
 
-const DashboardContent = ({ summary, spending, budgets, transactions, navigation }) => (
+const DashboardContent = ({ summary, spending, budgets, transactions, navigation, selectedMonth, selectedYear }) => (
   <>
+  <View style={{marginHorizontal:10}}>
     <View style={styles.summaryContainer}>
       <SummaryCard title="Income" value={`+$${summary?.monthly_income || '0.00'}`} positive />
       <SummaryCard title="Expenses" value={`-$${summary?.monthly_expenses || '0.00'}`} negative />
@@ -31,7 +31,8 @@ const DashboardContent = ({ summary, spending, budgets, transactions, navigation
     <View style={styles.summaryContainer}>
       <SummaryCard title="Total Balance" value={`$${summary?.total_balance || '0.00'}`} />
     </View>
-    <SpendingChart data={spending} />
+  </View>
+    <SpendingChart data={spending} month={selectedMonth} year={selectedYear} />
     <BudgetProgress data={budgets} />
     <RecentTransactions data={transactions} navigation={navigation} />
   </>
@@ -61,13 +62,10 @@ const MonthSelector = ({ currentDate, setCurrentDate, isNextDisabled }) => {
 
 export default function Dashboard() {
   const navigation = useNavigation<DashboardNavigationProp>();
-  const { signOut } = useAuth();
-  const [menuVisible, setMenuVisible] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const selectedYear = useMemo(() => currentDate.getFullYear(), [currentDate]);
   const selectedMonth = useMemo(() => currentDate.getMonth() + 1, [currentDate]);
-
   const { data: summary, isLoading: summaryLoading, isFetching: summaryFetching, refetch: refetchSummary } = useDashboardSummary(selectedYear, selectedMonth);
   const { data: spending, isLoading: spendingLoading, isFetching: spendingFetching, refetch: refetchSpending } = useSpendingByCategory(selectedYear, selectedMonth);
   const { data: budgets, isLoading: budgetsLoading, isFetching: budgetsFetching, refetch: refetchBudgets } = useBudgetProgress(selectedYear, selectedMonth);
@@ -112,6 +110,8 @@ export default function Dashboard() {
                 budgets={budgets}
                 transactions={transactions}
                 navigation={navigation}
+                selectedMonth={selectedMonth}
+                selectedYear={selectedYear}
               />
             }
             onRefresh={onRefresh}
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   summaryContainer: { 
     flexDirection: 'row', 
     justifyContent: 'space-around', 
-    padding: 10 
+    padding: 5, 
     },
 
   monthSelector: {
