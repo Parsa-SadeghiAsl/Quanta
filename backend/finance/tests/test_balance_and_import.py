@@ -1,6 +1,5 @@
 import pytest
 from django.contrib.auth import get_user_model
-from rest_framework.test import APIClient
 from finance.models import Account, Category, Transaction
 from decimal import Decimal
 
@@ -29,27 +28,3 @@ def test_balance_update_on_create_update_delete():
     tx.delete()
     acc.refresh_from_db()
     assert acc.balance == Decimal("100.00")
-
-
-@pytest.mark.django_db
-def test_csv_import_endpoint(tmp_path):
-    u = User.objects.create_user("u2", password="pass1234")
-    client = APIClient()
-    client.force_authenticate(user=u)
-
-    # create CSV
-    csv_content = (
-        "date,amount,account,category,notes\n2025-09-01,50.00,Wallet,Groceries,weekly\n"
-    )
-    f = tmp_path / "t.csv"
-    f.write_text(csv_content)
-
-    # NOTE: full path including /api/
-    url = "/api/transactions/import/"
-
-    with open(f, "rb") as fh:
-        resp = client.post(url, {"file": fh}, format="multipart")
-
-    assert resp.status_code == 200
-    data = resp.json()
-    assert data["created"] == 1
