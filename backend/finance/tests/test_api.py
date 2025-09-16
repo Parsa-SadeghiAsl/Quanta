@@ -2,6 +2,7 @@
 from rest_framework.test import APIClient
 import pytest
 
+
 @pytest.mark.django_db
 def test_register_and_crud_account():
     client = APIClient()
@@ -10,15 +11,13 @@ def test_register_and_crud_account():
     resp = client.post(
         "/api/auth/register/",
         {"username": "testu", "email": "t@t.com", "password": "pass1234"},
-        format="json"
+        format="json",
     )
     assert resp.status_code == 201
 
     # get token
     resp = client.post(
-        "/api/auth/token/",
-        {"username": "testu", "password": "pass1234"},
-        format="json"
+        "/api/auth/token/", {"username": "testu", "password": "pass1234"}, format="json"
     )
     assert resp.status_code == 200
     access = resp.json()["access"]
@@ -28,8 +27,13 @@ def test_register_and_crud_account():
     # create account
     resp = client.post(
         "/api/accounts/",
-        {"name": "Wallet", "account_type": "cash", "currency": "USD", "balance": "50.00"},
-        format="json"
+        {
+            "name": "Wallet",
+            "account_type": "cash",
+            "currency": "USD",
+            "balance": "50.00",
+        },
+        format="json",
     )
     assert resp.status_code == 201
     data = resp.json()

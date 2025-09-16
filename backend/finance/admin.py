@@ -2,21 +2,32 @@
 from django.contrib import admin
 from .models import Account, Category, Transaction, Budget, RecurringTransaction
 
+
 @admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "user", "account_type", "balance")
     search_fields = ("name",)
     list_filter = ("account_type",)
 
+
 @admin.register(RecurringTransaction)
 class RecurringTransactionAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "account", "frequency", "amount", "start_date", "next_date")
+    list_display = (
+        "id",
+        "user",
+        "account",
+        "frequency",
+        "amount",
+        "start_date",
+        "next_date",
+    )
     search_fields = ("name",)
     list_filter = ("frequency",)
 
+
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "user", "type", 'color')
+    list_display = ("id", "name", "user", "type", "color")
     search_fields = ("name",)
     list_filter = ("type",)
 

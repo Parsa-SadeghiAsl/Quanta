@@ -5,6 +5,7 @@ from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
 from .models import Transaction, Account
 
+
 def _transaction_effect(tx):
     """
     Returns Decimal effect to apply to the account.balance:
@@ -23,6 +24,7 @@ def _transaction_effect(tx):
     # fallback: amount sign
     return amt
 
+
 @receiver(pre_save, sender=Transaction)
 def finance_transaction_pre_save(sender, instance, **kwargs):
     """
@@ -33,9 +35,12 @@ def finance_transaction_pre_save(sender, instance, **kwargs):
         instance._old_instance = None
         return
     try:
-        instance._old_instance = sender.objects.select_related("account", "category").get(pk=instance.pk)
+        instance._old_instance = sender.objects.select_related(
+            "account", "category"
+        ).get(pk=instance.pk)
     except sender.DoesNotExist:
         instance._old_instance = None
+
 
 @receiver(post_save, sender=Transaction)
 def finance_transaction_post_save(sender, instance, created, **kwargs):
@@ -48,13 +53,17 @@ def finance_transaction_post_save(sender, instance, created, **kwargs):
 
     if created:
         # apply new effect to the instance.account
-        Account.objects.filter(pk=instance.account.pk).update(balance=F("balance") + new_effect)
+        Account.objects.filter(pk=instance.account.pk).update(
+            balance=F("balance") + new_effect
+        )
         return
 
     old = getattr(instance, "_old_instance", None)
     if old is None:
         # fallback: recompute by reversing all transactions for account (rare)
-        Account.objects.filter(pk=instance.account.pk).update(balance=F("balance") + new_effect)
+        Account.objects.filter(pk=instance.account.pk).update(
+            balance=F("balance") + new_effect
+        )
         return
 
     old_effect = _transaction_effect(old)
@@ -66,12 +75,19 @@ def finance_transaction_post_save(sender, instance, created, **kwargs):
     if old_account_pk == new_account_pk:
         diff = new_effect - old_effect
         if diff != Decimal("0.00"):
-            Account.objects.filter(pk=new_account_pk).update(balance=F("balance") + diff)
+            Account.objects.filter(pk=new_account_pk).update(
+                balance=F("balance") + diff
+            )
     else:
         # revert on old account
-        Account.objects.filter(pk=old_account_pk).update(balance=F("balance") - old_effect)
+        Account.objects.filter(pk=old_account_pk).update(
+            balance=F("balance") - old_effect
+        )
         # apply on new account
-        Account.objects.filter(pk=new_account_pk).update(balance=F("balance") + new_effect)
+        Account.objects.filter(pk=new_account_pk).update(
+            balance=F("balance") + new_effect
+        )
+
 
 @receiver(post_delete, sender=Transaction)
 def finance_transaction_post_delete(sender, instance, **kwargs):

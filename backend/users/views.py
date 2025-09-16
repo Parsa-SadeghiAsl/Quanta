@@ -1,17 +1,21 @@
-import os 
-from django.conf import settings 
-from django.contrib.auth.models import User
+import os
+from django.conf import settings
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser, FormParser 
-from .serializers import UserRegistrationSerializer, ProfileSerializer, ChangePasswordSerializer
-from .models import Profile
+from rest_framework.parsers import MultiPartParser, FormParser
+from .serializers import (
+    UserRegistrationSerializer,
+    ProfileSerializer,
+    ChangePasswordSerializer,
+)
+
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = UserRegistrationSerializer
     permission_classes = [permissions.AllowAny]
-    
+
+
 class ProfileView(APIView):
     # Add parsers to handle multipart form data, which is how files are sent.
     parser_classes = [MultiPartParser, FormParser]
@@ -36,7 +40,9 @@ class ProfileView(APIView):
         print("------------------------")
         # --- END DEBUGGING ---
 
-        serializer = ProfileSerializer(request.user.profile, data=request.data, partial=True)
+        serializer = ProfileSerializer(
+            request.user.profile, data=request.data, partial=True
+        )
 
         if serializer.is_valid():
             serializer.save()
@@ -45,11 +51,11 @@ class ProfileView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class ChangePasswordView(APIView):
     """
     An endpoint for changing password.
     """
+
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
@@ -59,8 +65,11 @@ class ChangePasswordView(APIView):
         if serializer.is_valid():
             # Check old password
             if not user.check_password(serializer.data.get("old_password")):
-                return Response({"old_password": ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
-            
+                return Response(
+                    {"old_password": ["Wrong password."]},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
             # set_password hashes the password
             user.set_password(serializer.data.get("new_password"))
             user.save()

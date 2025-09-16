@@ -1,22 +1,23 @@
 import pytest
-from rest_framework.authtoken.models import Token
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
-from finance.models import Account, Category, Transaction, RecurringTransaction
+from finance.models import Account, Category, Transaction
 from decimal import Decimal
-from django.urls import reverse
-from django.utils import timezone
-from datetime import date, timedelta
 
 User = get_user_model()
+
 
 @pytest.mark.django_db
 def test_balance_update_on_create_update_delete():
     u = User.objects.create_user("u1", password="pass1234")
-    acc = Account.objects.create(user=u, name="A1", account_type="bank", balance=Decimal("100.00"))
+    acc = Account.objects.create(
+        user=u, name="A1", account_type="bank", balance=Decimal("100.00")
+    )
     cat_exp = Category.objects.create(user=u, name="Food", type="expense")
     # create expense transaction
-    tx = Transaction.objects.create(user=u, account=acc, category=cat_exp, amount=Decimal("25.00"))
+    tx = Transaction.objects.create(
+        user=u, account=acc, category=cat_exp, amount=Decimal("25.00")
+    )
     acc.refresh_from_db()
     assert acc.balance == Decimal("75.00")
     # update amount
@@ -37,7 +38,9 @@ def test_csv_import_endpoint(tmp_path):
     client.force_authenticate(user=u)
 
     # create CSV
-    csv_content = "date,amount,account,category,notes\n2025-09-01,50.00,Wallet,Groceries,weekly\n"
+    csv_content = (
+        "date,amount,account,category,notes\n2025-09-01,50.00,Wallet,Groceries,weekly\n"
+    )
     f = tmp_path / "t.csv"
     f.write_text(csv_content)
 
@@ -45,7 +48,7 @@ def test_csv_import_endpoint(tmp_path):
     url = "/api/transactions/import/"
 
     with open(f, "rb") as fh:
-        resp = client.post(url, {"file": fh}, format='multipart')
+        resp = client.post(url, {"file": fh}, format="multipart")
 
     assert resp.status_code == 200
     data = resp.json()

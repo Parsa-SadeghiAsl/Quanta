@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+
 import os
 from pathlib import Path
 import environ
@@ -21,11 +22,13 @@ env_file = BASE_DIR.parent / ".env"
 env = environ.Env(DEBUG=(bool, False))
 if env_file.exists():
     environ.Env.read_env(str(env_file))
-    
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR.parent / 'media'
 
-SECRET_KEY = env("DJANGO_SECRET_KEY")# Quick-start development settings - unsuitable for production
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR.parent / "media"
+
+SECRET_KEY = env(
+    "DJANGO_SECRET_KEY"
+)  # Quick-start development settings - unsuitable for production
 DEBUG = env("DJANGO_DEBUG")
 
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -63,7 +66,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    
 ]
 CORS_ALLOW_ALL_ORIGINS = True
 
