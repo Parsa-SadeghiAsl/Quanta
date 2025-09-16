@@ -10,6 +10,12 @@ export type Account = {
   balance: string;
 };
 
+export interface UpdateAccountPayload {
+    id: number;
+    name: string;
+    account_type: string;
+}
+
 export type Category = {
   id: number;
   name: string;
@@ -84,7 +90,35 @@ export type NewRecurringTransactionPayload = {
 
 // --- QUERY HOOKS (GET Data) ---
 
-export const useAccounts = () => useQuery<Account[]>({ queryKey: ['accounts'], queryFn: () => client.get('/accounts/').then((res) => res.data) });
+export const useAccounts = () =>
+  useQuery<Account[]>({
+    queryKey: ['accounts'],
+    queryFn: () => client.get('/accounts/').then((res) => res.data),
+  });
+
+export const useUpdateAccount = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (account: UpdateAccountPayload) =>
+            client.patch(`/accounts/${account.id}/`, account),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['accounts'] });
+            queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+        },
+    });
+};
+
+export const useDeleteAccount = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (accountId: number) => client.delete(`/accounts/${accountId}/`),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['accounts'] });
+            queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+        },
+    });
+};
+
 export const useAllTransactions = () => useQuery<Transaction[]>({ queryKey: ['transactions', 'all'], queryFn: () => client.get('/transactions/').then((res) => res.data) });
 
 // --- CATEGORIES ---

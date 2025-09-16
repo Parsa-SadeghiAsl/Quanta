@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
-import { TextInput, Button, Text, PaperProvider, MD3LightTheme as DefaultTheme } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
+import { TextInput, Button, Card, HelperText, PaperProvider, MD3LightTheme as DefaultTheme } from 'react-native-paper';
+import { useNavigation , useRoute } from '@react-navigation/native';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useForm, Controller } from 'react-hook-form';
 import { Picker } from '@react-native-picker/picker';
-import { useCreateAccount } from '../hooks/useApi';
+import { useCreateAccount, useUpdateAccount } from '../hooks/useApi';
 
 const theme = {
   ...DefaultTheme,
@@ -14,80 +17,77 @@ const theme = {
   },
 };
 
+const schema = z.object({
+  name: z.string().min(1, 'Account name is required'),
+  account_type: z.enum(['bank', 'cash', 'credit'], { required_error: 'Account type is required' }),
+  balance: z.string().min(1, 'Initial balance is required'),
+});
+
 export default function AddAccountScreen() {
   const navigation = useNavigation();
   const [name, setName] = useState('');
   const [account_type, setType] = useState('bank');
   const [balance, setBalance] = useState('');
+  const route = useRoute();
+  const item = route.params?.item;
+  const isEditing = !!item;
 
-  const createAccountMutation = useCreateAccount();
+  const createMutation = useCreateAccount();
+  const updateMutation = useUpdateAccount();
 
-  const handleSave = () => {
-    if (!name.trim() || !balance.trim()) {
-      Alert.alert('Invalid Input', 'Please fill in all fields.');
-      return;
+
+  const { control, handleSubmit, formState: { errors } } = useForm({
+    resolver: zodResolver(schema),
+    defaultValues: {
+        name: item?.name || '',
+        account_type: item?.account_type || 'bank',
+        balance: item?.balance || '0.00',
+    },
+  });
+
+  const onSubmit = (data) => {
+    const mutation = isEditing ? updateMutation : createMutation;
+    const payload = { ...data };
+    if (isEditing) {
+        payload.id = item.id;
     }
-    const numericBalance = parseFloat(balance);
-    if (isNaN(numericBalance)) {
-        Alert.alert('Invalid Input', 'Please enter a valid number for the balance.');
-        return;
-    }
 
-    createAccountMutation.mutate(
-      {
-        name,
-        account_type,
-        balance: numericBalance.toFixed(2),
-      },
-      {
-        onSuccess: () => {
-          Alert.alert('Success', 'Account created successfully!');
-          navigation.goBack();
-        },
-        onError: (error) => {
-          console.error('Failed to create account:', error);
-          Alert.alert('Error', 'Failed to create account. Please try again.');
-        },
-      }
-    );
+    mutation.mutate(payload, {
+        onSuccess: () => navigation.goBack(),
+    });
   };
 
   return (
     <PaperProvider theme={theme}>
       <ScrollView style={styles.container}>
-        <TextInput
-          label="Account Name"
-          value={name}
-          onChangeText={setName}
-          mode="outlined"
-          style={styles.input}
-        />
-        <TextInput
-          label="Initial Balance"
-          value={balance}
-          onChangeText={setBalance}
-          keyboardType="numeric"
-          mode="outlined"
-          style={styles.input}
-        />
+        <Controller control={control} name="name" render={({ field: { onChange, onBlur, value } }) => (
+          <TextInput label="Account Name" value={value} onBlur={onBlur} onChangeText={onChange} error={!!errors.name} style={styles.input} />
+        )}/>
+        {errors.name && <HelperText type="error">{errors.name.message}</HelperText>}
 
-        <Text style={styles.pickerLabel}>Account Type</Text>
-        <View style={styles.pickerContainer}>
-          <Picker selectedValue={account_type} onValueChange={(itemValue) => setType(itemValue)}>
-            <Picker.Item label="Bank Account" value="bank" />
-            <Picker.Item label="Cash" value="cash" />
-            <Picker.Item label="Credit Card" value="credit" />
-          </Picker>
-        </View>
+        <Controller control={control} name="account_type" render={({ field: { onChange, value } }) => (
+          <View style={styles.pickerContainer}>
+            <Picker selectedValue={value} onValueChange={onChange}>
+              <Picker.Item label="Bank Account" value="bank" />
+              <Picker.Item label="Cash" value="cash" />
+              <Picker.Item label="Credit Card" value="credit" />
+            </Picker>
+          </View>
+        )} />
+        {errors.account_type && <HelperText type="error">{errors.account_type.message}</HelperText>}
+
+        <Controller control={control} name="balance" render={({ field: { onChange, onBlur, value } }) => (
+          <TextInput label="Current Balance" value={value} onBlur={onBlur} onChangeText={onChange} keyboardType="numeric" error={!!errors.balance} style={styles.input} />
+        )} />
+        {errors.balance && <HelperText type="error">{errors.balance.message}</HelperText>}
 
         <Button
           mode="contained"
-          onPress={handleSave}
+          onPress={handleSubmit(onSubmit)}
           style={styles.button}
-          loading={createAccountMutation.isPending}
-          disabled={createAccountMutation.isPending}
+          loading={createMutation.isLoading || updateMutation.isLoading}
         >
-          Save Account
+          {isEditing ? 'Save Changes' : 'Create Account'}
         </Button>
       </ScrollView>
     </PaperProvider>
