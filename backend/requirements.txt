@@ -8,3 +8,6 @@ djangorestframework-simplejwt
 django-environ
 drf-spectacular
 Pillow
+black
+flake8
+pre-commit
