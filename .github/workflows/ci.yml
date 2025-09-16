@@ -55,4 +55,5 @@ jobs:
           DJANGO_SECRET_KEY: ci-secret-key
           DJANGO_DEBUG: 'False'
         run: |
+          python manage.py migrate
           pytest backend/
