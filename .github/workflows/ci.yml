@@ -2,6 +2,8 @@ name: CI
 
 on:
   pull_request:
+    branches:
+      - main
   push:
     branches:
       - main
@@ -14,31 +16,41 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_USER: finance_user
-          POSTGRES_PASSWORD: finance_pass
-          POSTGRES_DB: finance_db
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U finance_user -d finance_db"
+          --health-cmd pg_isready
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
           python-version: "3.11"
 
       - name: Install dependencies
         run: |
-          pip install -r requirements-dev.txt
+          pip install -r ./backend/requirements.txt
 
-      - name: Run linters
-        run: pre-commit run --all-files
+      - name: Run Linters
+        run: |
+          flake8 backend/
+          black --check backend/
 
       - name: Run tests
-        run: pytest --disable-warnings --maxfail=1
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_HOST: localhost
+          DJANGO_SECRET_KEY: ci-secret-key
+        run: |
+          pytest backend/
