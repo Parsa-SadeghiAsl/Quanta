@@ -43,9 +43,11 @@ export default function TransactionsScreen({}) {
     const { data, isLoading, isFetching, refetch, isError } = useSpendingByCategory(selectedYear, selectedMonth);
     
     let total :number = 0;
-    data.forEach(item => {
-        total += item.amount;
-    });
+    if (data) {
+      data.forEach(item => {
+          total += item.amount;
+      });
+    }
 
 
         const onRefresh = useCallback(() => {
