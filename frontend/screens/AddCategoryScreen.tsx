@@ -172,7 +172,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 20,
     padding: 10,
-    backgroundColor: 'white',
   },
   input: {
     marginBottom: 15,

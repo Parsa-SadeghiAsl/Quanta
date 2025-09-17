@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useRef, useCallback} from 'react';
 import { View, Alert, FlatList, StyleSheet } from 'react-native';
 import { Text, Portal, Dialog, Button, Card, FAB, Appbar, IconButton, ProgressBar, MD3Colors } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
@@ -12,6 +12,23 @@ export default function BudgetsScreen() {
 
     const [selectedBudget, setSelectedBudget] = useState(null);
     const [dialogVisible, setDialogVisible] = useState(false);
+
+    const [isFabVisible, setIsFabVisible] = useState(true);
+    const lastScrollY = useRef(0);
+
+    const handleScroll = useCallback((event) => {
+        const currentScrollY = event.nativeEvent.contentOffset.y;
+        const scrollDirection = currentScrollY > lastScrollY.current ? 'down' : 'up';
+        const scrollThreshold = 10; // A small buffer
+
+        if (scrollDirection === 'down' && currentScrollY > scrollThreshold && isFabVisible) {
+            setIsFabVisible(false);
+        } else if (scrollDirection === 'up' && !isFabVisible) {
+            setIsFabVisible(true);
+        }
+
+        lastScrollY.current = currentScrollY;
+    }, [isFabVisible]);
 
     const handleLongPress = (budget) => {
         setSelectedBudget(budget);
@@ -43,6 +60,8 @@ export default function BudgetsScreen() {
         <View style={styles.container}>
             <FlatList
                 data={budgets}
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (
                     <Card style={styles.card}>
@@ -72,6 +91,7 @@ export default function BudgetsScreen() {
                 style={styles.fab}
                 icon="plus"
                 onPress={() => navigation.navigate('AddBudget')}
+                visible={isFabVisible}
             />
             <Portal>
                 <Dialog visible={dialogVisible} onDismiss={() => setDialogVisible(false)}>

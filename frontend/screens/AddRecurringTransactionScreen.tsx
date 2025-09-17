@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Appbar, Button, TextInput, Text, Card, useTheme, HelperText } from 'react-native-paper';
+import { Button, TextInput, Text, useTheme, HelperText } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,10 +19,8 @@ const schema = z.object({
     startDate: z.date({ required_error: "Start date is required" }),
 });
 
-// A safe function to parse 'YYYY-MM-DD' strings into Date objects
 const parseDateString = (dateString) => {
     const [year, month, day] = dateString.split('-').map(Number);
-    // The month is 0-indexed in the JavaScript Date constructor (0=Jan, 1=Feb, etc.)
     return new Date(year, month - 1, day);
 };
 
@@ -48,7 +46,6 @@ export default function AddRecurringTransactionScreen() {
             accountId: item?.account?.toString() || '',
             categoryId: item?.category?.toString() || '',
             frequency: item?.frequency || 'monthly',
-            // Use the safe parsing function here
             startDate: item ? parseDateString(item.start_date) : new Date(),
         },
     });
@@ -149,8 +146,7 @@ export default function AddRecurringTransactionScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20,
-        backgroundColor: 'white',},
+        padding: 20},
     card: { margin: 16 },
     input: {
         marginBottom: 15,

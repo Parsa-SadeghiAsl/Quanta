@@ -1,6 +1,7 @@
 // src/screens/Auth/SignIn.tsx
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
+import { View, Text, TextInput, StyleSheet } from "react-native";
+import { Button } from "react-native-paper";
 import { useAuth } from "../../hooks/useAuth";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../navigation/AppNavigator"; // Adjust path if needed
@@ -41,15 +42,21 @@ export default function SignIn({ navigation }: Props) {
         onChangeText={setPassword}
         value={password}
       />
+      <Button
+        mode="contained"
+        onPress={handleSubmit}
+        style={styles.buttonContainer}
+      >
+        Sign In 
+      </Button>
       <View style={styles.buttonContainer}>
-        <Button title="Sign In" onPress={handleSubmit} />
-      </View>
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Don't have an account? Sign Up"
-          onPress={() => navigation.navigate("SignUp")} // This navigates to the SignUp screen
-          color="#666"
-        />
+      <Button
+        mode="outlined"
+        onPress={() => navigation.navigate("SignUp")}
+        style={[styles.buttonContainer]}
+      >
+        Don't have an account? Sign Up  
+      </Button>
       </View>
     </View>
   );

@@ -2,10 +2,12 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useAuth } from '../hooks/useAuth';
-import { Button } from 'react-native-paper'
+import { Button, PaperProvider } from 'react-native-paper'
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { useNavigation } from '@react-navigation/native';
 import { StyleSheet } from 'react-native';
+import { NavigationTheme, PaperTheme } from '../src/theme/theme';
+import {AppColors} from '../src/theme/theme'
 // --- Screens ---
 import SignIn from '../screens/Auth/SignIn';
 import SignUp from '../screens/Auth/SignUp';
@@ -53,7 +55,7 @@ function AppDrawer() {
   return (
       <Drawer.Navigator
         drawerContent={(props) => <CustomDrawerContent {...props} />}
-        screenOptions={{ headerShown: true, headerStatusBarHeight: 0 }}
+        screenOptions={{ headerShown: true, headerStatusBarHeight: 0}}
         >
         <Drawer.Screen 
           name="Dashboard" 
@@ -85,26 +87,27 @@ export default function AppNavigator() {
   }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{headerShown: true, headerStatusBarHeight: 0}}>
-        {user ? (
-          <>
-            <Stack.Screen name="DrawerApp" component={AppDrawer} options={{ headerShown: false }}/>
-            <Stack.Screen name="Transactions" component={TransactionsScreen}  />
-            <Stack.Screen name="AddTransaction" component={AddTransactionScreen} options={{ title: 'Add Transaction' }} />
-            <Stack.Screen name="AddAccount" component={AddAccountScreen} options={{ title: 'Add New Account' }} />
-            <Stack.Screen name="AddRecurringTransaction" component={AddRecurringTransactionScreen} options={{ title: 'Add Recurring' }} />
-            <Stack.Screen name="AddBudget" component={AddBudgetScreen} />
-            <Stack.Screen name="AddCategory" component={AddCategoryScreen} />
+    <NavigationContainer theme={NavigationTheme}>
+		<Stack.Navigator screenOptions={{headerShown: true, headerStatusBarHeight: 0}}>
+			{user ? (
+			<>
+				<Stack.Screen name="DrawerApp" component={AppDrawer} options={{ headerShown: false }}/>
+				<Stack.Screen name="Transactions" component={TransactionsScreen}  />
+				<Stack.Screen name="AddTransaction" component={AddTransactionScreen} options={{ title: 'Add Transaction' }} />
+				<Stack.Screen name="AddAccount" component={AddAccountScreen} options={{ title: 'Add New Account' }} />
+				<Stack.Screen name="AddRecurringTransaction" component={AddRecurringTransactionScreen} options={{ title: 'Add Recurring' }} />
+				<Stack.Screen name="AddBudget" component={AddBudgetScreen} />
+				<Stack.Screen name="AddCategory" component={AddCategoryScreen} />
 
-          </>
-        ) : (
-          <>
-            <Stack.Screen name="SignIn" component={SignIn} options={{ title: 'Sign In' }} />
-            <Stack.Screen name="SignUp" component={SignUp} options={{ title: 'Create Account' }} />
-          </>
-        )}
-      </Stack.Navigator>
+			</>
+			) : (
+			<>
+				<Stack.Screen name="SignIn" component={SignIn} options={{ title: 'Sign In' }} />
+				<Stack.Screen name="SignUp" component={SignUp} options={{ title: 'Create Account' }} />
+			</>
+			)}
+		</Stack.Navigator>
+
     </NavigationContainer>
   );
 }

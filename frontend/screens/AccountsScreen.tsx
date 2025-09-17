@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { View, FlatList, StyleSheet, Alert } from 'react-native';
-import { Text, Card, FAB, ActivityIndicator, IconButton, Portal, Dialog, Button } from 'react-native-paper';
+import { Text, Card, FAB, ActivityIndicator, IconButton, Portal, Dialog, Button} from 'react-native-paper';
 import { useAccounts, useDeleteAccount } from '../hooks/useApi';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { PaperTheme } from '../src/theme/theme';
+import  ScreenWrapper from '../components/ScreenWrapper'
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Accounts'>;
 
@@ -50,30 +52,30 @@ export default function AccountsScreen() {
 
     return (
         <View style={styles.container}>
-                <FlatList
-                    data={accounts}
-                    keyExtractor={(item) => item.id.toString()}
-                    renderItem={({ item }) => (
-                        <Card style={styles.card}>
-                            <Card.Title
-                                title={`${item.name} (${item.account_type})`}
-                                subtitle= {'Balance:'}
-                                right={(props) => <IconButton {...props} icon="dots-vertical" onPress={() => handleLongPress(item)} />}
-                            />
-                            <Card.Content>
-                                <Text style={[styles.balance,  {color: parseInt(item.balance) > 0 ? 'green' : 'red'}]}>
-                                    {parseInt(item.balance) > 0 ? `$${item.balance}` : `-$${item.balance.slice(1)}` }
-                                </Text>
-                            </Card.Content>
-                        </Card>
-                    )}
-                    ListEmptyComponent={() => (
-                        <View style={styles.emptyContainer}>
-                            <Text variant="titleLarge">No Accounts Yet</Text>
-                            <Text variant="bodyMedium" style={styles.centerText}>Tap the '+' button to add your first one.</Text>
-                        </View>
-                    )}                        
-                /> 
+            <FlatList
+                data={accounts}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) => (
+                    <Card style={styles.card}>
+                        <Card.Title
+                            title={`${item.name} (${item.account_type})`}
+                            subtitle= {'Balance:'}
+                            right={(props) => <IconButton {...props} icon="dots-vertical" onPress={() => handleLongPress(item)} />}
+                        />
+                        <Card.Content>
+                            <Text style={[styles.balance,  {color: parseInt(item.balance) > 0 ? 'green' : 'red'}]}>
+                                {parseInt(item.balance) > 0 ? `$${item.balance}` : `-$${item.balance.slice(1)}` }
+                            </Text>
+                        </Card.Content>
+                    </Card>
+                )}
+                ListEmptyComponent={() => (
+                    <View style={styles.emptyContainer}>
+                        <Text variant="titleLarge">No Accounts Yet</Text>
+                        <Text variant="bodyMedium" style={styles.centerText}>Tap the '+' button to add your first one.</Text>
+                    </View>
+                )}                        
+            /> 
             <FAB
                 style={styles.fab}
                 icon="plus"

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { View, FlatList, StyleSheet, Alert } from 'react-native';
 import { Text, ActivityIndicator, Button, Portal, Dialog, FAB, Card, IconButton } from 'react-native-paper';
 import { useRecurringTransactions, useDeleteRecurringTransaction } from '../hooks/useApi';
@@ -16,6 +16,23 @@ export default function RecurringTransactionsScreen() {
 
     const [selectedRecurring, setSelectedRecurring] = useState(null);
     const [dialogVisible, setDialogVisible] = useState(false);
+    const [isFabVisible, setIsFabVisible] = useState(true);
+    const lastScrollY = useRef(0);
+
+    const handleScroll = useCallback((event) => {
+        const currentScrollY = event.nativeEvent.contentOffset.y;
+        const scrollDirection = currentScrollY > lastScrollY.current ? 'down' : 'up';
+        const scrollThreshold = 10; // A small buffer
+
+        if (scrollDirection === 'down' && currentScrollY > scrollThreshold && isFabVisible) {
+            setIsFabVisible(false);
+        } else if (scrollDirection === 'up' && !isFabVisible) {
+            setIsFabVisible(true);
+        }
+
+        lastScrollY.current = currentScrollY;
+    }, [isFabVisible]);
+
 
     const handleDelete = () => {
         Alert.alert(
@@ -55,6 +72,8 @@ export default function RecurringTransactionsScreen() {
         <View style={styles.container}>
                 <FlatList
                     data={recurring}
+					onScroll={handleScroll}
+					scrollEventThrottle={16}
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={({ item }) => (
                         <Card style={styles.card}>
@@ -84,6 +103,7 @@ export default function RecurringTransactionsScreen() {
                 style={styles.fab}
                 icon="plus"
                 onPress={() => navigation.navigate('AddRecurringTransaction', { item: null })}
+				visible={isFabVisible}
             />
             <Portal>
                 <Dialog visible={dialogVisible} onDismiss={() => setDialogVisible(false)}>

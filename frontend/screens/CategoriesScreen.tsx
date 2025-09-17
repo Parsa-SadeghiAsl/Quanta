@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { View, Alert, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useCallback, useRef } from 'react';
+import { View, Alert, FlatList, StyleSheet } from 'react-native';
 import { Text, Card, ActivityIndicator, IconButton, FAB, Dialog, Portal, Button } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { useUserCategories, useDeleteCategory } from '../hooks/useApi';
@@ -13,6 +13,22 @@ export default function CategoriesScreen() {
     const [dialogVisible, setDialogVisible] = useState(false);
 
     const onRefresh = useCallback(() => { refetch(); }, [refetch]);
+    const [isFabVisible, setIsFabVisible] = useState(true);
+    const lastScrollY = useRef(0);
+
+    const handleScroll = useCallback((event) => {
+        const currentScrollY = event.nativeEvent.contentOffset.y;
+        const scrollDirection = currentScrollY > lastScrollY.current ? 'down' : 'up';
+        const scrollThreshold = 10; // A small buffer
+
+        if (scrollDirection === 'down' && currentScrollY > scrollThreshold && isFabVisible) {
+            setIsFabVisible(false);
+        } else if (scrollDirection === 'up' && !isFabVisible) {
+            setIsFabVisible(true);
+        }
+
+        lastScrollY.current = currentScrollY;
+    }, [isFabVisible]);
 
     const handleLongPress = (category) => {
         setSelectedCategory(category);
@@ -32,8 +48,8 @@ export default function CategoriesScreen() {
                 { text: "Cancel", style: "cancel" },
                 {
                     text: "Delete",
-                    onPress: () => {deleteMutation.mutate(selectedCategory.id, {onSuccess: () => setDialogVisible(false)}), setDialogVisible(false)},
-                    
+                    onPress: () => { deleteMutation.mutate(selectedCategory.id, { onSuccess: () => setDialogVisible(false) }), setDialogVisible(false) },
+
                     style: "destructive",
                 },
             ]
@@ -50,6 +66,8 @@ export default function CategoriesScreen() {
                 data={categories}
                 keyExtractor={(item) => item.id.toString()}
                 onRefresh={onRefresh}
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
                 refreshing={isFetching}
                 ListEmptyComponent={() => (
                     <View style={styles.emptyContainer}>
@@ -63,7 +81,7 @@ export default function CategoriesScreen() {
                             title={item.name}
                             subtitle={item.type}
                             right={(props) =>
-                            <IconButton {...props} icon="dots-vertical" onPress={() => handleLongPress(item)} />}
+                                <IconButton {...props} icon="dots-vertical" onPress={() => handleLongPress(item)} />}
                             left={(props) => <View {...props} style={[styles.colorDot, { backgroundColor: item.color }]} />}
                         />
                     </Card>
@@ -73,6 +91,7 @@ export default function CategoriesScreen() {
                 icon="plus"
                 style={styles.fab}
                 onPress={() => navigation.navigate('AddCategory')}
+                visible={isFabVisible}
             />
             <Portal>
                 <Dialog visible={dialogVisible} onDismiss={() => setDialogVisible(false)}>

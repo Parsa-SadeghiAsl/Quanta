@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Button, TextInput, Text, Card, useTheme, HelperText } from 'react-native-paper';
+import { Button, TextInput, Text, HelperText } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -28,7 +28,6 @@ const parseDateString = (dateString) => {
 export default function AddBudgetScreen() {
     const navigation = useNavigation();
     const route = useRoute();
-    const theme = useTheme();
     const item = route.params?.item;
     const isEditing = !!item;
 
@@ -72,61 +71,54 @@ export default function AddBudgetScreen() {
     };
 
     return (
-        <View style={styles.container}>
-            <ScrollView>
-                <Card style={styles.card}>
-                    <Card.Content>
-                        <Controller control={control} name="amount" render={({ field: { onChange, value } }) => (
-                            <TextInput label="Budget Amount" value={value} onChangeText={onChange} keyboardType="numeric" error={!!errors.amount} style={styles.input} />
-                        )} />
-                        {errors.amount && <HelperText type="error">{errors.amount.message}</HelperText>}
-                        
-                        <Controller control={control} name="categoryId" render={({ field: { onChange, value } }) => (
-                            <View style={styles.pickerContainer}>
-                                <Picker selectedValue={value} onValueChange={onChange}>
-                                    <Picker.Item label="Select Category..." value="" />
-                                    {categories.filter(c => c.type === 'expense').map((cat) => <Picker.Item key={cat.id} label={cat.name} value={cat.id.toString()} />)}
-                                </Picker>
-                            </View>
-                        )} />
-                        {errors.categoryId && <HelperText type="error">{errors.categoryId.message}</HelperText>}
+        <ScrollView style={styles.container}>
+            <Controller control={control} name="amount" render={({ field: { onChange, value } }) => (
+                <TextInput label="Budget Amount" mode='outlined' value={value} onChangeText={onChange} keyboardType="numeric" error={!!errors.amount} style={styles.input} />
+            )} />
+            {errors.amount && <HelperText type="error">{errors.amount.message}</HelperText>}
+            
+            <Controller control={control} name="categoryId" render={({ field: { onChange, value } }) => (
+                <View style={styles.pickerContainer}>
+                    <Picker selectedValue={value} onValueChange={onChange}>
+                        <Picker.Item label="Select Category..." value="" />
+                        {categories.filter(c => c.type === 'expense').map((cat) => <Picker.Item key={cat.id} label={cat.name} value={cat.id.toString()} />)}
+                    </Picker>
+                </View>
+            )} />
+            {errors.categoryId && <HelperText type="error">{errors.categoryId.message}</HelperText>}
 
-                        <TouchableOpacity onPress={() => setPicker('start')} style={styles.dateButton}>
-                            <Text>Start Date: {format(startDate, 'MMMM dd, yyyy')}</Text>
-                        </TouchableOpacity>
-                        
-                        <TouchableOpacity onPress={() => setPicker('end')} style={styles.dateButton}>
-                            <Text>End Date: {format(endDate, 'MMMM dd, yyyy')}</Text>
-                        </TouchableOpacity>
-                        {errors.endDate && <HelperText type="error">{errors.endDate.message}</HelperText>}
+            <TouchableOpacity onPress={() => setPicker('start')} style={styles.dateButton}>
+                <Text>Start Date: {format(startDate, 'MMMM dd, yyyy')}</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity onPress={() => setPicker('end')} style={styles.dateButton}>
+                <Text>End Date: {format(endDate, 'MMMM dd, yyyy')}</Text>
+            </TouchableOpacity>
+            {errors.endDate && <HelperText type="error">{errors.endDate.message}</HelperText>}
 
-                        <DateTimePickerModal
-                            isVisible={picker !== null}
-                            mode="date"
-                            onConfirm={handleConfirmDate}
-                            onCancel={() => setPicker(null)}
-                            date={picker === 'start' ? startDate : endDate}
-                        />
+            <DateTimePickerModal
+                isVisible={picker !== null}
+                mode="date"
+                onConfirm={handleConfirmDate}
+                onCancel={() => setPicker(null)}
+                date={picker === 'start' ? startDate : endDate}
+            />
 
-                        <Button
-                            mode="contained"
-                            onPress={handleSubmit(onSubmit)}
-                            loading={createMutation.isLoading || updateMutation.isLoading}
-                            style={styles.button}>
-                            {isEditing ? 'Save Changes' : 'Create Budget'}
-                        </Button>
-                    </Card.Content>
-                </Card>
-            </ScrollView>
-        </View>
+            <Button
+                mode="contained"
+                onPress={handleSubmit(onSubmit)}
+                loading={createMutation.isLoading || updateMutation.isLoading}
+                style={styles.button}>
+                {isEditing ? 'Save Changes' : 'Create Budget'}
+            </Button>
+        </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1 },
-    card: { margin: 16 },
-    input: { marginBottom: 8 },
-    button: { marginTop: 16 },
+    container: { flex: 1, padding: 20},
+    input: { marginBottom: 15, },
+    button: { marginTop: 10, padding: 10, borderRadius: 8 },
     dateButton: { borderWidth: 1, borderColor: '#ccc', borderRadius: 5, padding: 15, marginBottom: 8 },
-    pickerContainer: { borderWidth: 1, borderColor: '#ccc', borderRadius: 5, marginBottom: 8 },
+    pickerContainer: { borderWidth: 1, borderColor: '#ccc', borderRadius: 5, marginBottom: 15 },
 });

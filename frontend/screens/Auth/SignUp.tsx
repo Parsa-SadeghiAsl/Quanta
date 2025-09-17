@@ -1,6 +1,7 @@
 // src/screens/Auth/SignUp.tsx
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
+import { View, Text, TextInput, StyleSheet } from "react-native";
+import { Button } from "react-native-paper";
 import { useAuth } from "../../hooks/useAuth";
 import { useNavigation } from "@react-navigation/native";
 
@@ -53,12 +54,20 @@ export default function SignUp() {
         value={password}
       />
 
-      <View style={styles.buttonContainer}>
-      <Button title="Register" onPress={handleSubmit} />
-      </View>
-      <View style={styles.buttonContainer}>
-      <Button title="Back to Sign In" onPress={() => navigation.goBack()} />
-      </View>
+      <Button
+        mode="contained"
+        onPress={handleSubmit}
+        style={styles.buttonContainer}
+      >
+      SIGN UP 
+      </Button>
+      <Button
+        mode="outlined"
+        onPress={() => navigation.goBack()}
+        style={styles.buttonContainer}
+      >
+       BACK TO SIGN IN 
+      </Button>
 
     </View>
   );
