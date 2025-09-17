@@ -58,6 +58,28 @@ These instructions will get you a copy of the project up and running on your loc
     ```
     You can then run the app on an Android or iOS simulator, or on your physical device using the Expo Go app.
 
+#### Setup Python Virtual Environment:
+
+1. **Create a virtual environment:**
+    ```
+    # In the root directory 
+    cd ./backend
+    python3 -m venv venv
+    ```
+2. **Activate virtual environment:**
+    ```
+    # In Linux and MACos:
+    source ./venv/bin/activate
+
+    # In Windows:
+    venv\Scripts\activate.bat
+    ```
+3. **Instal dependencies:**
+    ```
+    pip install -r requirements.txt
+    ```
+    *Now you can locally develop and run the server*
+
 ### Running Tests
 
 To run the backend tests and linters, use the following Docker command from the project root:
