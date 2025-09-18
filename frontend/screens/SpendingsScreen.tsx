@@ -4,6 +4,7 @@ import { useRoute } from '@react-navigation/native';
 import { List, PaperProvider } from 'react-native-paper';
 import { useSpendingByCategory } from '../hooks/useApi';
 import { useDate } from '../components/DateContext';
+import { format } from 'date-fns'
 
 
 const SpendingItem = ({ item, totalAmount }) => {
@@ -59,7 +60,7 @@ export default function SpendingsScreen({ }) {
 				<FlatList
 					data={data}
 					renderItem={({ item }) => <SpendingItem item={item} totalAmount={total} />}
-					ListEmptyComponent={<Text style={styles.emptyText}>No Spending recorded for {selectedMonth}.</Text>}
+					ListEmptyComponent={<Text style={styles.emptyText}>No Spending recorded for {format(new Date(selectedYear, selectedMonth -1), 'MMMM')}.</Text>}
 					onRefresh={onRefresh}
 					refreshing={isFetching}
 				/>
