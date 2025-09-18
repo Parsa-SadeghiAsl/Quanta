@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { View, StyleSheet, ActivityIndicator, FlatList, Text, TouchableOpacity } from 'react-native';
-import { Appbar, Button, Menu } from 'react-native-paper';
+import { View, StyleSheet, ActivityIndicator, FlatList, Text } from 'react-native';
+import { Appbar } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { format, subMonths, addMonths, isSameMonth, isAfter } from 'date-fns';
+import { useDate } from '../../components/DateContext';
 
 
 import {
@@ -32,7 +33,7 @@ const DashboardContent = ({ summary, spending, budgets, transactions, navigation
       <SummaryCard title="Total Balance" value={`$${summary?.total_balance || '0.00'}`} />
     </View>
   </View>
-    <SpendingChart data={spending} month={selectedMonth} year={selectedYear} />
+    <SpendingChart data={spending} />
     <BudgetProgress data={budgets} />
     <RecentTransactions data={transactions} navigation={navigation} />
   </>
@@ -62,10 +63,7 @@ const MonthSelector = ({ currentDate, setCurrentDate, isNextDisabled }) => {
 
 export default function Dashboard() {
   const navigation = useNavigation<DashboardNavigationProp>();
-  const [currentDate, setCurrentDate] = useState(new Date());
-
-  const selectedYear = useMemo(() => currentDate.getFullYear(), [currentDate]);
-  const selectedMonth = useMemo(() => currentDate.getMonth() + 1, [currentDate]);
+  const { currentDate, setCurrentDate, selectedYear, selectedMonth } = useDate();
   const { data: summary, isLoading: summaryLoading, isFetching: summaryFetching, refetch: refetchSummary } = useDashboardSummary(selectedYear, selectedMonth);
   const { data: spending, isLoading: spendingLoading, isFetching: spendingFetching, refetch: refetchSpending } = useSpendingByCategory(selectedYear, selectedMonth);
   const { data: budgets, isLoading: budgetsLoading, isFetching: budgetsFetching, refetch: refetchBudgets } = useBudgetProgress(selectedYear, selectedMonth);

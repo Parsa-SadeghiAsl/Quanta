@@ -6,6 +6,7 @@ import { AuthProvider } from './hooks/useAuth';
 import AppNavigator from './navigation/AppNavigator';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PaperTheme } from './src/theme/theme';
+import { DateProvider } from './components/DateContext';
 
 
 export default function App() {
@@ -13,9 +14,11 @@ export default function App() {
     <SafeAreaView style={{ flex: 1}}>
       <QueryClientProvider client={queryClient}>
         <PaperProvider theme={PaperTheme}>
-          <AuthProvider>
-            <AppNavigator />
-          </AuthProvider>
+          <DateProvider>
+            <AuthProvider>
+              <AppNavigator />
+            </AuthProvider>
+          </DateProvider>
         </PaperProvider>
       </QueryClientProvider>
     </SafeAreaView>

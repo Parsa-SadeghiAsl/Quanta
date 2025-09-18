@@ -10,14 +10,14 @@ const chartConfig = {
 
 };
 
-export default function SpendingChart({ data, month, year }) {
+export default function SpendingChart({ data }) {
   const navigation = useNavigation();
   const topSpendingData = data.slice(0, 5);
   return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
           <Text style={styles.title}>Spending by Category</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Spendings', { month, year })}>
+          <TouchableOpacity onPress={() => navigation.navigate('Spendings')}>
             <Text style={styles.viewAll}>View All</Text>
           </TouchableOpacity>
       </View>

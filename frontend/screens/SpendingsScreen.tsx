@@ -3,6 +3,8 @@ import { View, FlatList, StyleSheet, ActivityIndicator, Text } from 'react-nativ
 import { useRoute } from '@react-navigation/native';
 import { List, PaperProvider } from 'react-native-paper';
 import { useSpendingByCategory } from '../hooks/useApi';
+import { useDate } from '../components/DateContext';
+
 
 const SpendingItem = ({ item, totalAmount }) => {
 	const percentage = item.amount * 100 / totalAmount;
@@ -27,10 +29,9 @@ const SpendingItem = ({ item, totalAmount }) => {
 
 
 
-export default function TransactionsScreen({ }) {
+export default function SpendingsScreen({ }) {
 	const route = useRoute();
-	const selectedYear = route.params?.year;
-	const selectedMonth = route.params?.month;
+	const { selectedYear, selectedMonth } = useDate();
 	const { data, isLoading, isFetching, refetch, isError } = useSpendingByCategory(selectedYear, selectedMonth);
 
 	let total: number = 0;

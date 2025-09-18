@@ -2,12 +2,11 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useAuth } from '../hooks/useAuth';
-import { Button, PaperProvider } from 'react-native-paper'
+import { Button } from 'react-native-paper'
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { useNavigation } from '@react-navigation/native';
 import { StyleSheet } from 'react-native';
-import { NavigationTheme, PaperTheme } from '../src/theme/theme';
-import {AppColors} from '../src/theme/theme'
+import { NavigationTheme } from '../src/theme/theme';
 // --- Screens ---
 import SignIn from '../screens/Auth/SignIn';
 import SignUp from '../screens/Auth/SignUp';
@@ -58,7 +57,7 @@ function AppDrawer() {
         screenOptions={{ headerShown: true, headerStatusBarHeight: 0}}
         >
         <Drawer.Screen 
-          name="Dashboard" 
+          name="Dashboard"
           component={Dashboard} 
           options={{
             headerRight: () => (
