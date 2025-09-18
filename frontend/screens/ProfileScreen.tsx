@@ -50,8 +50,6 @@ export default function ProfileScreen() {
 
     const pickImage = async () => {
             const result = await ImagePicker.launchImageLibraryAsync({
-                // --- THIS IS THE FIX ---
-                // Replaced deprecated `MediaTypeOptions` with the new `MediaType`
                 mediaTypes: ['images'],
                 allowsEditing: true,
                 aspect: [1, 1],
@@ -144,13 +142,13 @@ export default function ProfileScreen() {
                             <Button mode="text" onPress={pickImage} style={styles.button}>Change Picture</Button>
                         </Card.Content>
 
+                        <Card.Title title="Edit Profile"/>
                         <Card.Content>
-                        <Text style={styles.textLabel}>Edit Profile</Text>
                             <Controller
                                 control={profileControl}
                                 name="username"
                                 render={({ field: { onChange, onBlur, value } }) => (
-                                    <TextInput label="Username" value={value} onBlur={onBlur} onChangeText={onChange} error={!!profileErrors.username} style={styles.input} />
+                                    <TextInput label="Username" value={value} mode='outlined' onBlur={onBlur} onChangeText={onChange} error={!!profileErrors.username} style={styles.input} />
                                 )}
                             />
                             {profileErrors.username && <HelperText type="error">{profileErrors.username.message}</HelperText>}
@@ -172,7 +170,7 @@ export default function ProfileScreen() {
                                 control={passwordControl}
                                 name="old_password"
                                 render={({ field: { onChange, onBlur, value } }) => (
-                                    <TextInput label="Current Password" value={value} onBlur={onBlur} onChangeText={onChange} secureTextEntry error={!!passwordErrors.old_password} style={styles.input} />
+                                    <TextInput label="Current Password" mode='outlined' value={value} onBlur={onBlur} onChangeText={onChange} secureTextEntry error={!!passwordErrors.old_password} style={styles.input} />
                                 )}
                             />
                             {passwordErrors.old_password && <HelperText type="error">{passwordErrors.old_password.message}</HelperText>}
@@ -180,7 +178,7 @@ export default function ProfileScreen() {
                                 control={passwordControl}
                                 name="new_password"
                                 render={({ field: { onChange, onBlur, value } }) => (
-                                    <TextInput label="New Password" value={value} onBlur={onBlur} onChangeText={onChange} secureTextEntry error={!!passwordErrors.new_password} style={styles.input} />
+                                    <TextInput label="New Password" mode='outlined' value={value} onBlur={onBlur} onChangeText={onChange} secureTextEntry error={!!passwordErrors.new_password} style={styles.input} />
                                 )}
                             />
                             {passwordErrors.new_password && <HelperText type="error">{passwordErrors.new_password.message}</HelperText>}
@@ -189,7 +187,7 @@ export default function ProfileScreen() {
                                 control={passwordControl} 
                                 name="new_password_confirm" 
                                 render={({ field: { onChange, onBlur, value } }) => (
-                                    <TextInput label="Confirm New Password" value={value} onBlur={onBlur} onChangeText={onChange} secureTextEntry error={!!passwordErrors.new_password_confirm} style={styles.input} />
+                                    <TextInput label="Confirm New Password" mode='outlined' value={value} onBlur={onBlur} onChangeText={onChange} secureTextEntry error={!!passwordErrors.new_password_confirm} style={styles.input} />
                                 )} 
                             />
                             {passwordErrors.new_password_confirm && <HelperText type="error">{passwordErrors.new_password_confirm.message}</HelperText>}
