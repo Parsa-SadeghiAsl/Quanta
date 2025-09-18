@@ -51,6 +51,6 @@ const styles = StyleSheet.create({
   categoryText: { fontSize: 14 },
   amountText: { fontSize: 14, color: '#7f8c8d' },
   progressBarBackground: { height: 10, backgroundColor: '#ecf0f1', borderRadius: 5, width: '100%' },
-  progressBarFill: { height: 10, backgroundColor: '#3498db', borderRadius: 5 },
+  progressBarFill: { height: 10, backgroundColor: '#112D4E', borderRadius: 5 },
   emptyText: { color: '#7f8c8d', textAlign: 'center', paddingVertical: 20 },
 });
