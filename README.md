@@ -1,7 +1,9 @@
 ## Quanta - Personal Finance & Budgeting App
 Quanta is a modern, mobile-first application designed to help you take control of your finances. Track your accounts, manage transactions, set budgets, and gain insights into your spending habits with a clean, intuitive interface.
 
-![Screenshot(1)](https://github.com/user-attachments/assets/2b96aebf-c3be-4123-a858-8458c80bb741)
+<p align="center">
+  <img src=".github/images/Screenshot(1).jpg" alt="Screenshot of Dashboard"/>
+</p>
 
 ### Key Features
 
