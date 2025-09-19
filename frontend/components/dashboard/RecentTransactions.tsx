@@ -32,7 +32,7 @@ const TransactionItem = ({ item }) => {
 
 
 export default function RecentTransactions({ data }) {
-  const navigation = useNavigation();
+  const navigation = useNavigation<DashboardNavigationProp>();
 
   return (
     <View style={styles.card}>

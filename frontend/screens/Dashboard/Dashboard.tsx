@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { View, StyleSheet, ActivityIndicator, FlatList, Text } from 'react-native';
 import { Appbar } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
@@ -21,23 +21,6 @@ import BudgetProgress from '../../components/dashboard/BudgetProgress';
 import RecentTransactions from '../../components/dashboard/RecentTransactions';
 
 type DashboardNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Dashboard'>;
-
-const DashboardContent = ({ summary, spending, budgets, transactions, navigation, selectedMonth, selectedYear }) => (
-  <>
-  <View style={{marginHorizontal:10}}>
-    <View style={styles.summaryContainer}>
-      <SummaryCard title="Income" value={`+$${summary?.monthly_income || '0.00'}`} positive />
-      <SummaryCard title="Expenses" value={`-$${summary?.monthly_expenses || '0.00'}`} negative />
-    </View>
-    <View style={styles.summaryContainer}>
-      <SummaryCard title="Total Balance" value={`$${summary?.total_balance || '0.00'}`} />
-    </View>
-  </View>
-    <SpendingChart data={spending} />
-    <BudgetProgress data={budgets} />
-    <RecentTransactions data={transactions} navigation={navigation} />
-  </>
-);
 
 const MonthSelector = ({ currentDate, setCurrentDate, isNextDisabled }) => {
     const handlePrevMonth = () => setCurrentDate(prev => subMonths(prev, 1));
@@ -102,15 +85,20 @@ export default function Dashboard() {
             keyExtractor={() => 'key'}
             renderItem={null}
             ListHeaderComponent={
-              <DashboardContent
-                summary={summary}
-                spending={spending}
-                budgets={budgets}
-                transactions={transactions}
-                navigation={navigation}
-                selectedMonth={selectedMonth}
-                selectedYear={selectedYear}
-              />
+              <>
+                <View style={{marginHorizontal:10}}>
+                  <View style={styles.summaryContainer}>
+                    <SummaryCard title="Income" value={`+$${summary?.monthly_income || '0.00'}`} positive />
+                    <SummaryCard title="Expenses" value={`-$${summary?.monthly_expenses || '0.00'}`} negative />
+                  </View>
+                  <View style={styles.summaryContainer}>
+                    <SummaryCard title="Total Balance" value={`$${summary?.total_balance || '0.00'}`} />
+                  </View>
+                </View>
+                <SpendingChart data={spending} />
+                <BudgetProgress data={budgets} />
+                <RecentTransactions data={transactions} />
+              </>
             }
             onRefresh={onRefresh}
             refreshing={isRefreshing}
@@ -152,4 +140,3 @@ const styles = StyleSheet.create({
   },
 
 });
-
