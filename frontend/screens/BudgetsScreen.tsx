@@ -1,36 +1,22 @@
-import React, {useState, useRef, useCallback} from 'react';
+import React, { useState } from 'react';
 import { View, Alert, FlatList, StyleSheet } from 'react-native';
-import { Text, Portal, Dialog, Button, Card, FAB, IconButton, ProgressBar, MD3Colors } from 'react-native-paper';
+import { Text, Card, FAB, IconButton, ProgressBar, MD3Colors } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { useBudgetProgress, useDeleteBudget } from '../hooks/useApi';
 import { useDate } from '../components/DateContext';
 import { format, parseISO } from 'date-fns';
+import { useFabVisibility } from '../hooks/useFabVisibility'; // Import the hook
+import ManagementDialog from '../components/ManagementDialog'; // Import the component
 
 export default function BudgetsScreen() {
     const navigation = useNavigation();
     const { selectedYear, selectedMonth } = useDate();
     const { data: budgets, isLoading } = useBudgetProgress(selectedYear, selectedMonth);
     const deleteMutation = useDeleteBudget();
+    const { isFabVisible, handleScroll } = useFabVisibility(); // Use the hook
 
     const [selectedBudget, setSelectedBudget] = useState(null);
     const [dialogVisible, setDialogVisible] = useState(false);
-
-    const [isFabVisible, setIsFabVisible] = useState(true);
-    const lastScrollY = useRef(0);
-
-    const handleScroll = useCallback((event) => {
-        const currentScrollY = event.nativeEvent.contentOffset.y;
-        const scrollDirection = currentScrollY > lastScrollY.current ? 'down' : 'up';
-        const scrollThreshold = 10; // A small buffer
-
-        if (scrollDirection === 'down' && currentScrollY > scrollThreshold && isFabVisible) {
-            setIsFabVisible(false);
-        } else if (scrollDirection === 'up' && !isFabVisible) {
-            setIsFabVisible(true);
-        }
-
-        lastScrollY.current = currentScrollY;
-    }, [isFabVisible]);
 
     const handleLongPress = (budget) => {
         setSelectedBudget(budget);
@@ -44,14 +30,13 @@ export default function BudgetsScreen() {
 
     const handleDelete = () => {
         Alert.alert(
-            "Delete Recurring Transaction",
+            "Delete Budget",
             "Are you sure you want to delete this? This action cannot be undone.",
             [
                 { text: "Cancel", style: "cancel" },
                 {
                     text: "Delete",
-                    onPress: () => {deleteMutation.mutate(selectedBudget.id, {onSuccess: () => setDialogVisible(false)}), setDialogVisible(false)},
-                    
+                    onPress: () => {deleteMutation.mutate(selectedBudget.id, {onSuccess: () => setDialogVisible(false)})},
                     style: "destructive",
                 },
             ]
@@ -75,7 +60,7 @@ export default function BudgetsScreen() {
                         />
                         <Card.Content>
                             <View style={styles.progressContainer}>
-                                <Text style={styles.progressText}>${item.spent} / ${item.amount}</Text>
+                                <Text style={styles.progressText}>${item.spent.toFixed(2)} / ${item.amount}</Text>
                                 <ProgressBar progress={Math.min(item.spent / parseFloat(item.amount), 1)} color={MD3Colors.primary50} style={styles.progressBar}/>
                             </View>
                         </Card.Content>
@@ -88,26 +73,21 @@ export default function BudgetsScreen() {
                     </View>
                 )}
             />
-
             <FAB
                 style={styles.fab}
                 icon="plus"
                 onPress={() => navigation.navigate('AddBudget')}
                 visible={isFabVisible}
             />
-            <Portal>
-                <Dialog visible={dialogVisible} onDismiss={() => setDialogVisible(false)}>
-                    <Dialog.Title>Manage Budget</Dialog.Title>
-                    <Dialog.Content>
-                        <Text>What would you like to do with "{selectedBudget?.name}"?</Text>
-                    </Dialog.Content>
-                    <Dialog.Actions>
-                        <Button onPress={handleEdit}>Edit</Button>
-                        <Button onPress={handleDelete} loading={deleteMutation.isLoading}>Delete</Button>
-                        <Button onPress={() => setDialogVisible(false)}>Cancel</Button>
-                    </Dialog.Actions>
-                </Dialog>
-            </Portal>
+            <ManagementDialog
+                visible={dialogVisible}
+                onDismiss={() => setDialogVisible(false)}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                deleteLoading={deleteMutation.isLoading}
+                itemName={selectedBudget?.category_details.name || ''}
+                title="Manage Budget"
+            />
         </View>
     );
 }

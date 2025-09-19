@@ -1,11 +1,13 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState } from 'react';
 import { View, FlatList, StyleSheet, Alert } from 'react-native';
-import { Text, ActivityIndicator, Button, Portal, Dialog, FAB, Card, IconButton } from 'react-native-paper';
+import { Text, ActivityIndicator, Card, FAB, IconButton } from 'react-native-paper';
 import { useRecurringTransactions, useDeleteRecurringTransaction } from '../hooks/useApi';
 import { format, parseISO } from 'date-fns';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { useFabVisibility } from '../hooks/useFabVisibility';
+import ManagementDialog from '../components/ManagementDialog';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'RecurringTransactions'>;
 
@@ -13,26 +15,10 @@ export default function RecurringTransactionsScreen() {
     const navigation = useNavigation<NavigationProp>();
     const { data: recurring, isLoading, isError } = useRecurringTransactions();
     const deleteMutation = useDeleteRecurringTransaction();
+    const { isFabVisible, handleScroll } = useFabVisibility();
 
     const [selectedRecurring, setSelectedRecurring] = useState(null);
     const [dialogVisible, setDialogVisible] = useState(false);
-    const [isFabVisible, setIsFabVisible] = useState(true);
-    const lastScrollY = useRef(0);
-
-    const handleScroll = useCallback((event) => {
-        const currentScrollY = event.nativeEvent.contentOffset.y;
-        const scrollDirection = currentScrollY > lastScrollY.current ? 'down' : 'up';
-        const scrollThreshold = 10; // A small buffer
-
-        if (scrollDirection === 'down' && currentScrollY > scrollThreshold && isFabVisible) {
-            setIsFabVisible(false);
-        } else if (scrollDirection === 'up' && !isFabVisible) {
-            setIsFabVisible(true);
-        }
-
-        lastScrollY.current = currentScrollY;
-    }, [isFabVisible]);
-
 
     const handleDelete = () => {
         Alert.alert(
@@ -42,8 +28,7 @@ export default function RecurringTransactionsScreen() {
                 { text: "Cancel", style: "cancel" },
                 {
                     text: "Delete",
-                    onPress: () => {deleteMutation.mutate(selectedRecurring.id, {onSuccess: () => setDialogVisible(false)}), setDialogVisible(false)},
-                    
+                    onPress: () => {deleteMutation.mutate(selectedRecurring.id, {onSuccess: () => setDialogVisible(false)})},
                     style: "destructive",
                 },
             ]
@@ -58,8 +43,8 @@ export default function RecurringTransactionsScreen() {
         return <Text style={styles.errorText}>Failed to load recurring transactions.</Text>;
     }
 
-    const handleLongPress = (recurring) => {
-        setSelectedRecurring(recurring);
+    const handleLongPress = (recurringItem) => {
+        setSelectedRecurring(recurringItem);
         setDialogVisible(true);
     };
 
@@ -70,54 +55,49 @@ export default function RecurringTransactionsScreen() {
 
     return (
         <View style={styles.container}>
-                <FlatList
-                    data={recurring}
-					onScroll={handleScroll}
-					scrollEventThrottle={16}
-                    keyExtractor={(item) => item.id.toString()}
-                    renderItem={({ item }) => (
-                        <Card style={styles.card}>
-                            <Card.Title
-                                title={item.notes || 'Monthly Recurring'}
-                                subtitle={`Next on: ${format(parseISO(item.next_date), 'MMM dd, yyyy')}`}
-                                right={(props) =>
-                                    <IconButton {...props} icon="dots-vertical" onPress={() => handleLongPress(item)} />}
-                            />
-                            <Card.Content>
-                                <Text style={[styles.amount, item.category_details?.type === 'income' ? styles.income : styles.expense]}>
-                                    {item.category_details?.type === 'income' ? '+' : '-'}${item.amount}
-                                </Text>
-                                <Text>{item.account_details?.name}</Text>
-                            </Card.Content>
-                        </Card>
-                    )}
-                    ListEmptyComponent={() => (
-                        <View style={styles.emptyContainer}>
-                            <Text variant="titleLarge">No Recurrings Yet</Text>
-                            <Text variant="bodyMedium" style={styles.centerText}>Tap the '+' button to add your first one.</Text>
-                        </View>
-                    )}
-                />
-            
+            <FlatList
+                data={recurring}
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) => (
+                    <Card style={styles.card}>
+                        <Card.Title
+                            title={item.notes || 'Monthly Recurring'}
+                            subtitle={`Next on: ${format(parseISO(item.next_date), 'MMM dd, yyyy')}`}
+                            right={(props) =>
+                                <IconButton {...props} icon="dots-vertical" onPress={() => handleLongPress(item)} />}
+                        />
+                        <Card.Content>
+                            <Text style={[styles.amount, item.category_details?.type === 'income' ? styles.income : styles.expense]}>
+                                {item.category_details?.type === 'income' ? '+' : '-'}${item.amount}
+                            </Text>
+                            <Text>{item.account_details?.name}</Text>
+                        </Card.Content>
+                    </Card>
+                )}
+                ListEmptyComponent={() => (
+                    <View style={styles.emptyContainer}>
+                        <Text variant="titleLarge">No Recurrings Yet</Text>
+                        <Text variant="bodyMedium" style={styles.centerText}>Tap the '+' button to add your first one.</Text>
+                    </View>
+                )}
+            />
             <FAB
                 style={styles.fab}
                 icon="plus"
                 onPress={() => navigation.navigate('AddRecurringTransaction', { item: null })}
-				visible={isFabVisible}
+                visible={isFabVisible}
             />
-            <Portal>
-                <Dialog visible={dialogVisible} onDismiss={() => setDialogVisible(false)}>
-                    <Dialog.Title>Manage Recurring Transactions</Dialog.Title>
-                    <Dialog.Content>
-                        <Text>What would you like to do with "{selectedRecurring?.notes || 'Monthly Recurring'}"?</Text>
-                    </Dialog.Content>
-                    <Dialog.Actions>
-                        <Button onPress={handleEdit}>Edit</Button>
-                        <Button onPress={handleDelete} loading={deleteMutation.isLoading}>Delete</Button>
-                        <Button onPress={() => setDialogVisible(false)}>Cancel</Button>
-                    </Dialog.Actions>
-                </Dialog>
-            </Portal>
+            <ManagementDialog
+                visible={dialogVisible}
+                onDismiss={() => setDialogVisible(false)}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                deleteLoading={deleteMutation.isLoading}
+                itemName={selectedRecurring?.notes || 'Monthly Recurring'}
+                title="Manage Recurring Transaction"
+            />
         </View>
     );
 }
@@ -130,9 +110,7 @@ const styles = StyleSheet.create({
     centerText: { textAlign: 'center' },
     fab: { position: 'absolute', margin: 16, right: 0, bottom: 15 },
     card: { marginHorizontal: 16, marginTop: 16 },
-    actions: { flexDirection: 'row' },
     amount: { fontSize: 18, fontWeight: 'bold' },
     income: { color: 'green' },
     expense: { color: 'red' },
 });
-

@@ -1,34 +1,21 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Alert, FlatList, StyleSheet } from 'react-native';
-import { Text, Card, ActivityIndicator, IconButton, FAB, Dialog, Portal, Button } from 'react-native-paper';
+import { Text, Card, ActivityIndicator, IconButton, FAB } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { useUserCategories, useDeleteCategory } from '../hooks/useApi';
+import { useFabVisibility } from '../hooks/useFabVisibility';
+import ManagementDialog from '../components/ManagementDialog';
 
 export default function CategoriesScreen() {
     const navigation = useNavigation();
     const { data: categories, isLoading, isFetching, refetch } = useUserCategories();
     const deleteMutation = useDeleteCategory();
+    const { isFabVisible, handleScroll } = useFabVisibility();
 
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [dialogVisible, setDialogVisible] = useState(false);
 
     const onRefresh = useCallback(() => { refetch(); }, [refetch]);
-    const [isFabVisible, setIsFabVisible] = useState(true);
-    const lastScrollY = useRef(0);
-
-    const handleScroll = useCallback((event) => {
-        const currentScrollY = event.nativeEvent.contentOffset.y;
-        const scrollDirection = currentScrollY > lastScrollY.current ? 'down' : 'up';
-        const scrollThreshold = 10; // A small buffer
-
-        if (scrollDirection === 'down' && currentScrollY > scrollThreshold && isFabVisible) {
-            setIsFabVisible(false);
-        } else if (scrollDirection === 'up' && !isFabVisible) {
-            setIsFabVisible(true);
-        }
-
-        lastScrollY.current = currentScrollY;
-    }, [isFabVisible]);
 
     const handleLongPress = (category) => {
         setSelectedCategory(category);
@@ -42,14 +29,13 @@ export default function CategoriesScreen() {
 
     const handleDelete = () => {
         Alert.alert(
-            "Delete Recurring Transaction",
+            "Delete Category",
             "Are you sure you want to delete this? This action cannot be undone.",
             [
                 { text: "Cancel", style: "cancel" },
                 {
                     text: "Delete",
-                    onPress: () => { deleteMutation.mutate(selectedCategory.id, { onSuccess: () => setDialogVisible(false) }), setDialogVisible(false) },
-
+                    onPress: () => { deleteMutation.mutate(selectedCategory.id, { onSuccess: () => setDialogVisible(false) }) },
                     style: "destructive",
                 },
             ]
@@ -93,19 +79,15 @@ export default function CategoriesScreen() {
                 onPress={() => navigation.navigate('AddCategory')}
                 visible={isFabVisible}
             />
-            <Portal>
-                <Dialog visible={dialogVisible} onDismiss={() => setDialogVisible(false)}>
-                    <Dialog.Title>Manage Category</Dialog.Title>
-                    <Dialog.Content>
-                        <Text>What would you like to do with "{selectedCategory?.name}"?</Text>
-                    </Dialog.Content>
-                    <Dialog.Actions>
-                        <Button onPress={handleEdit}>Edit</Button>
-                        <Button onPress={handleDelete} loading={deleteMutation.isLoading}>Delete</Button>
-                        <Button onPress={() => setDialogVisible(false)}>Cancel</Button>
-                    </Dialog.Actions>
-                </Dialog>
-            </Portal>
+            <ManagementDialog
+                visible={dialogVisible}
+                onDismiss={() => setDialogVisible(false)}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                deleteLoading={deleteMutation.isLoading}
+                itemName={selectedCategory?.name || ''}
+                title="Manage Category"
+            />
         </View>
     );
 }
@@ -124,4 +106,3 @@ const styles = StyleSheet.create({
         marginLeft: 10,
     },
 });
-

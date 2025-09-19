@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { View, FlatList, StyleSheet, Alert } from 'react-native';
-import { Text, Card, FAB, ActivityIndicator, IconButton, Portal, Dialog, Button} from 'react-native-paper';
+import { Text, Card, FAB, ActivityIndicator, IconButton } from 'react-native-paper';
 import { useAccounts, useDeleteAccount } from '../hooks/useApi';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
-import { PaperTheme } from '../src/theme/theme';
-import  ScreenWrapper from '../components/ScreenWrapper'
+import ManagementDialog from '../components/ManagementDialog'; // Import the new component
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Accounts'>;
 
@@ -24,6 +23,7 @@ export default function AccountsScreen() {
     if (isError || !accounts) {
         return <Text style={styles.errorText}>Failed to load accounts.</Text>;
     }
+
     const handleDelete = () => {
         Alert.alert(
             "Delete Account",
@@ -32,13 +32,12 @@ export default function AccountsScreen() {
                 { text: "Cancel", style: "cancel" },
                 {
                     text: "Delete",
-                    onPress: () => {deleteMutation.mutate(selectedAccount.id, {onSuccess: () => setDialogVisible(false)}), setDialogVisible(false)},
-                    
+                    onPress: () => {deleteMutation.mutate(selectedAccount.id, {onSuccess: () => setDialogVisible(false)})},
                     style: "destructive",
                 },
             ]
         );
-        };
+    };
 
     const handleLongPress = (account) => {
         setSelectedAccount(account);
@@ -59,11 +58,11 @@ export default function AccountsScreen() {
                     <Card style={styles.card}>
                         <Card.Title
                             title={`${item.name} (${item.account_type})`}
-                            subtitle= {'Balance:'}
+                            subtitle={'Balance:'}
                             right={(props) => <IconButton {...props} icon="dots-vertical" onPress={() => handleLongPress(item)} />}
                         />
                         <Card.Content>
-                            <Text style={[styles.balance,  {color: parseInt(item.balance) > 0 ? 'green' : 'red'}]}>
+                            <Text style={[styles.balance, {color: parseInt(item.balance) > 0 ? 'green' : 'red'}]}>
                                 {parseInt(item.balance) > 0 ? `$${item.balance}` : `-$${item.balance.slice(1)}` }
                             </Text>
                         </Card.Content>
@@ -74,26 +73,22 @@ export default function AccountsScreen() {
                         <Text variant="titleLarge">No Accounts Yet</Text>
                         <Text variant="bodyMedium" style={styles.centerText}>Tap the '+' button to add your first one.</Text>
                     </View>
-                )}                        
-            /> 
+                )}
+            />
             <FAB
                 style={styles.fab}
                 icon="plus"
                 onPress={() => navigation.navigate('AddAccount')}
             />
-            <Portal>
-                <Dialog visible={dialogVisible} onDismiss={() => setDialogVisible(false)}>
-                    <Dialog.Title>Manage Recurring Transactions</Dialog.Title>
-                    <Dialog.Content>
-                        <Text>What would you like to do with "{selectedAccount?.name || 'Monthly Recurring'}"?</Text>
-                    </Dialog.Content>
-                    <Dialog.Actions>
-                        <Button onPress={handleEdit}>Edit</Button>
-                        <Button onPress={handleDelete} loading={deleteMutation.isLoading}>Delete</Button>
-                        <Button onPress={() => setDialogVisible(false)}>Cancel</Button>
-                    </Dialog.Actions>
-                </Dialog>
-            </Portal>
+            <ManagementDialog
+                visible={dialogVisible}
+                onDismiss={() => setDialogVisible(false)}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                deleteLoading={deleteMutation.isLoading}
+                itemName={selectedAccount?.name || ''}
+                title="Manage Account"
+            />
         </View>
     );
 }
@@ -108,4 +103,3 @@ const styles = StyleSheet.create({
     card: { marginHorizontal: 16, marginTop: 16 },
     balance: { fontSize: 18, fontWeight: 'bold', marginRight: 16, marginLeft: 2},
 });
-
