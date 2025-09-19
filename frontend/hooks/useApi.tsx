@@ -4,10 +4,10 @@ import client from '../api/client';
 // --- Type Definitions ---
 
 export type Account = {
-  id: number;
-  name: string;
-  account_type: string;
-  balance: string;
+    id: number;
+    name: string;
+    account_type: string;
+    balance: string;
 };
 
 export interface UpdateAccountPayload {
@@ -17,32 +17,32 @@ export interface UpdateAccountPayload {
 }
 
 export type Category = {
-  id: number;
-  name: string;
-  type: 'income' | 'expense';
-  color: string;
+    id: number;
+    name: string;
+    type: 'income' | 'expense';
+    color: string;
 };
 
 export type Transaction = {
-  id: number;
-  amount: string;
-  date: string;
-  notes: string;
-  account: number;
-  category: number | null;
-  category_details?: Category;
-  account_details?: Account;
+    id: number;
+    amount: string;
+    date: string;
+    notes: string;
+    account: number;
+    category: number | null;
+    category_details?: Category;
+    account_details?: Account;
 };
 
 export type Budget = {
-  id: number;
-  category: number;
-  category_details: Category;
-  amount: string;
-  start_date: string; // 'YYYY-MM-DD'
-  end_date: string; // 'YYYY-MM-DD'
-  created_at: string; // ISO string
-  spent: number;
+    id: number;
+    category: number;
+    category_details: Category;
+    amount: string;
+    start_date: string; // 'YYYY-MM-DD'
+    end_date: string; // 'YYYY-MM-DD'
+    created_at: string; // ISO string
+    spent: number;
 };
 
 export type RecurringTransaction = {
@@ -86,235 +86,75 @@ export type NewRecurringTransactionPayload = {
     notes: string;
     start_date: string;
 };
-
-
-// --- QUERY HOOKS (GET Data) ---
-
-export const useAccounts = () =>
-  useQuery<Account[]>({
-    queryKey: ['accounts'],
-    queryFn: () => client.get('/accounts/').then((res) => res.data),
-  });
-
-export const useUpdateAccount = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (account: UpdateAccountPayload) =>
-            client.patch(`/accounts/${account.id}/`, account),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['accounts'] });
-            queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
-        },
-    });
-};
-
-export const useDeleteAccount = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (accountId: number) => client.delete(`/accounts/${accountId}/`),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['accounts'] });
-            queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
-        },
-    });
-};
-
-export const useAllTransactions = () => useQuery<Transaction[]>({ queryKey: ['transactions', 'all'], queryFn: () => client.get('/transactions/').then((res) => res.data) });
-
-// --- CATEGORIES ---
 type NewCategoryPayload = { name: string; type: 'income' | 'expense'; color: string; };
 type UpdateCategoryPayload = NewCategoryPayload & { id: number; };
 
-
-export const useCategories = () =>
-  useQuery<Category[]>({
-    queryKey: ['categories', 'all'],
-    queryFn: () => client.get('/categories/').then((res) => res.data),
-  });
-
-export const useUserCategories = () =>
-  useQuery<Category[]>({
-    queryKey: ['categories', 'user'],
-    queryFn: () => client.get('/categories/mine/').then((res) => res.data),
-  });
-
-export const useCreateCategory = () => {
+// --- Centralized Mutation Hook ---
+const useSubmit = <TData, TVariables>(
+    mutationFn: (variables: TVariables) => Promise<TData>,
+    invalidatedQueryKeys: (string | (string | number)[])[] = []
+) => {
     const queryClient = useQueryClient();
-    return useMutation<Category, Error, NewCategoryPayload>({
-        mutationFn: (newCategory) => client.post('/categories/', newCategory),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['categories', 'user'] });
-            queryClient.invalidateQueries({ queryKey: ['categories', 'all'] });
-        },
-    });
-};
 
-export const useUpdateCategory = () => {
-    const queryClient = useQueryClient();
-    return useMutation<Category, Error, UpdateCategoryPayload>({
-        mutationFn: (category) => client.put(`/categories/${category.id}/`, category),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['categories', 'user'] });
-            queryClient.invalidateQueries({ queryKey: ['categories', 'all'] });
-        },
-    });
-};
-
-export const useDeleteCategory = () => {
-    const queryClient = useQueryClient();
-    return useMutation<void, Error, number>({
-        mutationFn: (categoryId) => client.delete(`/categories/${categoryId}/`),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['categories', 'user'] });
-            queryClient.invalidateQueries({ queryKey: ['categories', 'all'] });
-        },
-    });
-};
-
-
-// Analytics hooks updated to accept year and month
-export const useDashboardSummary = (year: number, month: number) =>
-    useQuery({
-        queryKey: ['summary', year, month],
-        queryFn: () => client.get('/analytics/summary/', { params: { year, month } }).then((res) => res.data),
-    });
-
-export const useSpendingByCategory = (year: number, month: number) =>
-    useQuery({
-        queryKey: ['spendingByCategory', year, month],
-        queryFn: () => client.get('/analytics/spending-by-category/', { params: { year, month } }).then((res) => res.data),
-    });
-
-    
-export const useRecentTransactions = () =>
-    useQuery<Transaction[]>({
-        queryKey: ['recentTransactions'],
-        // Call the new dedicated endpoint
-        queryFn: () => client.get('/analytics/recent-transactions/').then((res) => res.data),
-    });
-        
-        
-export const useBudgetProgress = (year: number, month: number) =>
-    useQuery<Budget[]>({
-    queryKey: ['budgetProgress', year, month],
-    // Call the new dedicated endpoint
-    queryFn: () => client.get('/analytics/budget-progress/', { params: { year, month } }).then((res) => res.data),
-    });
-
-export const useCreateBudget = () => {
-    const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (newBudget: Omit<Budget, 'id' | 'spent' | 'created_at' | 'category_details'>) => client.post('/budgets/', newBudget),
+        mutationFn,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['budgets'] });
-            queryClient.invalidateQueries({ queryKey: ['budgetProgress'] });
-        },
-    });
-};
-
-export const useUpdateBudget = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (updatedBudget: Omit<Budget, 'spent' | 'created_at' | 'category_details'>) => client.put(`/budgets/${updatedBudget.id}/`, updatedBudget),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['budgets'] });
-            queryClient.invalidateQueries({ queryKey: ['budgetProgress'] });
-        },
-    });
-};
-
-export const useDeleteBudget = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (budgetId: number) => client.delete(`/budgets/${budgetId}/`),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['budgets'] });
-            queryClient.invalidateQueries({ queryKey: ['budgetProgress'] });
-        },
-    });
-};
-
-
-        // Hook for recurring transactions
-export const useRecurringTransactions = () => useQuery<RecurringTransaction[]>({ queryKey: ['recurringTransactions'], queryFn: () => client.get('/recurring-transactions/').then((res) => res.data) });
-
-
-// --- PROFILE HOOKS ---
-export const useProfile = () =>
-    useQuery<Profile>({
-        queryKey: ['profile'],
-        queryFn: () => client.get('/auth/me/').then((res) => res.data),
-    });
-
-export const useUpdateProfile = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (payload: UpdateProfilePayload) => {
-            const formData = new FormData();
-            if (payload.username) {
-                formData.append('username', payload.username);
-            }
-            if (payload.avatar) {
-                formData.append('avatar', payload.avatar as any);
-            }
-            return client.patch('/auth/me/', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-            });
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['profile'] });
-        },
-    });
-};
-
-export const useChangePassword = () => {
-    return useMutation({
-        mutationFn: (payload: ChangePasswordPayload) =>
-            client.post('/auth/change-password/', payload),
-    });
-};
-
-// --- Import/Export Hooks ---
-
-export const useImportTransactions = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (formData: FormData) => client.post('/transactions/import_csv/', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-        }),
-        onSuccess: () => {
-            
-            queryClient.invalidateQueries();
-        },
-    });
-};
-
-
-export const useExportTransactions = () => {
-    return useQuery({
-        queryKey: ['exportTransactions'],
-        queryFn: () => client.get('/transactions/export_csv/').then((res) => res.data),
-        enabled: false,
-    });
-};
-
-// --- MUTATION HOOKS (Create, Update, Delete Data) ---
-
-const useInvalidateQueries = (queryKeys: (string | (string|number)[])[]) => {
-    const queryClient = useQueryClient();
-    return {
-        onSuccess: () => {
-            queryKeys.forEach(key => {
+            // Invalidate all specified queries on success
+            invalidatedQueryKeys.forEach(key => {
                 queryClient.invalidateQueries({ queryKey: Array.isArray(key) ? key : [key] });
             });
         },
-    };
+    });
 };
 
-export const useCreateTransaction = () => useMutation({ mutationFn: (payload: NewTransactionPayload) => client.post('/transactions/', payload), ...useInvalidateQueries(['transactions', 'summary', 'accounts', 'spendingByCategory', 'budgets']) });
-export const useCreateAccount = () => useMutation({ mutationFn: (payload: NewAccountPayload) => client.post('/accounts/', payload), ...useInvalidateQueries(['accounts', 'summary']) });
-// Hooks for Recurring Transactions (Create, Update, Delete)
-export const useCreateRecurringTransaction = () => useMutation({ mutationFn: (payload: NewRecurringTransactionPayload) => client.post('/recurring-transactions/', payload), ...useInvalidateQueries(['recurringTransactions']) });
-export const useUpdateRecurringTransaction = () => useMutation({ mutationFn: (payload: Partial<NewRecurringTransactionPayload> & { id: number }) => client.patch(`/recurring-transactions/${payload.id}/`, payload), ...useInvalidateQueries(['recurringTransactions']) });
-export const useDeleteRecurringTransaction = () => useMutation({ mutationFn: (id: number) => client.delete(`/recurring-transactions/${id}/`), ...useInvalidateQueries(['recurringTransactions']) });
 
+// --- API Hooks ---
+
+// ACCOUNTS
+export const useAccounts = () => useQuery<Account[]>({ queryKey: ['accounts'], queryFn: () => client.get('/accounts/').then(res => res.data.data) });
+export const useCreateAccount = () => useSubmit((payload: NewAccountPayload) => client.post('/accounts/', payload), [['accounts'], ['summary']]);
+export const useUpdateAccount = () => useSubmit((account: UpdateAccountPayload) => client.patch(`/accounts/${account.id}/`, account), [['accounts'], ['summary']]);
+export const useDeleteAccount = () => useSubmit((accountId: number) => client.delete(`/accounts/${accountId}/`), [['accounts'], ['summary']]);
+
+// TRANSACTIONS
+export const useAllTransactions = () => useQuery<Transaction[]>({ queryKey: ['transactions', 'all'], queryFn: () => client.get('/transactions/').then(res => res.data.data) });
+export const useCreateTransaction = () => useSubmit((payload: NewTransactionPayload) => client.post('/transactions/', payload), [['transactions'], ['summary'], ['accounts'], ['spendingByCategory'], ['budgets']]);
+
+// CATEGORIES
+export const useCategories = () => useQuery<Category[]>({ queryKey: ['categories', 'all'], queryFn: () => client.get('/categories/').then(res => res.data.data) });
+export const useUserCategories = () => useQuery<Category[]>({ queryKey: ['categories', 'user'], queryFn: () => client.get('/categories/mine/').then(res => res.data.data) });
+export const useCreateCategory = () => useSubmit((newCategory: NewCategoryPayload) => client.post('/categories/', newCategory), [['categories', 'all'], ['categories', 'user']]);
+export const useUpdateCategory = () => useSubmit((category: UpdateCategoryPayload) => client.put(`/categories/${category.id}/`, category), [['categories', 'all'], ['categories', 'user']]);
+export const useDeleteCategory = () => useSubmit((categoryId: number) => client.delete(`/categories/${categoryId}/`), [['categories', 'all'], ['categories', 'user']]);
+
+// BUDGETS
+export const useBudgets = () => useQuery<Budget[]>({ queryKey: ['budgets'], queryFn: () => client.get('/budgets/').then(res => res.data.data) });
+export const useCreateBudget = () => useSubmit((newBudget: Omit<Budget, 'id' | 'spent' | 'created_at' | 'category_details'>) => client.post('/budgets/', newBudget), [['budgets'], ['budgetProgress']]);
+export const useUpdateBudget = () => useSubmit((updatedBudget: Omit<Budget, 'spent' | 'created_at' | 'category_details'>) => client.put(`/budgets/${updatedBudget.id}/`, updatedBudget), [['budgets'], ['budgetProgress']]);
+export const useDeleteBudget = () => useSubmit((budgetId: number) => client.delete(`/budgets/${budgetId}/`), [['budgets'], ['budgetProgress']]);
+
+// RECURRING TRANSACTIONS
+export const useRecurringTransactions = () => useQuery<RecurringTransaction[]>({ queryKey: ['recurringTransactions'], queryFn: () => client.get('/recurring-transactions/').then(res => res.data.data) });
+export const useCreateRecurringTransaction = () => useSubmit((payload: NewRecurringTransactionPayload) => client.post('/recurring-transactions/', payload), [['recurringTransactions']]);
+export const useUpdateRecurringTransaction = () => useSubmit((payload: Partial<NewRecurringTransactionPayload> & { id: number }) => client.patch(`/recurring-transactions/${payload.id}/`, payload), [['recurringTransactions']]);
+export const useDeleteRecurringTransaction = () => useSubmit((id: number) => client.delete(`/recurring-transactions/${id}/`), [['recurringTransactions']]);
+
+// ANALYTICS
+export const useDashboardSummary = (year: number, month: number) => useQuery({ queryKey: ['summary', year, month], queryFn: () => client.get('/analytics/summary/', { params: { year, month } }).then(res => res.data.data) });
+export const useSpendingByCategory = (year: number, month: number) => useQuery({ queryKey: ['spendingByCategory', year, month], queryFn: () => client.get('/analytics/spending-by-category/', { params: { year, month } }).then(res => res.data.data) });
+export const useRecentTransactions = () => useQuery<Transaction[]>({ queryKey: ['recentTransactions'], queryFn: () => client.get('/analytics/recent-transactions/').then(res => res.data.data) });
+export const useBudgetProgress = (year: number, month: number) => useQuery<Budget[]>({ queryKey: ['budgetProgress', year, month], queryFn: () => client.get('/analytics/budget-progress/', { params: { year, month } }).then(res => res.data.data) });
+
+// PROFILE
+export const useProfile = () => useQuery<Profile>({ queryKey: ['profile'], queryFn: () => client.get('/auth/me/').then(res => res.data.data) });
+export const useUpdateProfile = () => useSubmit((payload: UpdateProfilePayload) => {
+    const formData = new FormData();
+    if (payload.username) formData.append('username', payload.username);
+    if (payload.avatar) formData.append('avatar', payload.avatar as any);
+    return client.patch('/auth/me/', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+}, [['profile']]);
+export const useChangePassword = () => useSubmit((payload: ChangePasswordPayload) => client.post('/auth/change-password/', payload));
+
+// IMPORT / EXPORT
+export const useImportTransactions = () => useSubmit((formData: FormData) => client.post('/transactions/import_csv/', formData, { headers: { 'Content-Type': 'multipart/form-data' } }), []);
+export const useExportTransactions = () => useQuery({ queryKey: ['exportTransactions'], queryFn: () => client.get('/transactions/export_csv/').then(res => res.data.data), enabled: false });
