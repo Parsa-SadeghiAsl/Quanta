@@ -60,7 +60,7 @@ export default function BudgetsScreen() {
                         />
                         <Card.Content>
                             <View style={styles.progressContainer}>
-                                <Text style={styles.progressText}>${item.spent.toFixed(2)} / ${item.amount}</Text>
+                                <Text style={styles.progressText}>${item.spent} / ${item.amount}</Text>
                                 <ProgressBar progress={Math.min(item.spent / parseFloat(item.amount), 1)} color={MD3Colors.primary50} style={styles.progressBar}/>
                             </View>
                         </Card.Content>
