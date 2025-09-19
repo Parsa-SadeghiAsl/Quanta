@@ -201,13 +201,6 @@ export const useBudgetProgress = (year: number, month: number) =>
     queryFn: () => client.get('/analytics/budget-progress/', { params: { year, month } }).then((res) => res.data),
     });
 
-// --- Budgets (CRUD) ---
-export const useBudgets = () =>
-  useQuery<Budget[]>({
-    queryKey: ['budgets'],
-    queryFn: () => client.get('/budgets/').then((res) => res.data),
-  });
-
 export const useCreateBudget = () => {
     const queryClient = useQueryClient();
     return useMutation({

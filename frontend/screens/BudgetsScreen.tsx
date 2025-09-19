@@ -1,13 +1,15 @@
 import React, {useState, useRef, useCallback} from 'react';
 import { View, Alert, FlatList, StyleSheet } from 'react-native';
-import { Text, Portal, Dialog, Button, Card, FAB, Appbar, IconButton, ProgressBar, MD3Colors } from 'react-native-paper';
+import { Text, Portal, Dialog, Button, Card, FAB, IconButton, ProgressBar, MD3Colors } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
-import { useBudgets, useDeleteBudget } from '../hooks/useApi';
+import { useBudgetProgress, useDeleteBudget } from '../hooks/useApi';
+import { useDate } from '../components/DateContext';
 import { format, parseISO } from 'date-fns';
 
 export default function BudgetsScreen() {
     const navigation = useNavigation();
-    const { data: budgets, isLoading } = useBudgets();
+    const { selectedYear, selectedMonth } = useDate();
+    const { data: budgets, isLoading } = useBudgetProgress(selectedYear, selectedMonth);
     const deleteMutation = useDeleteBudget();
 
     const [selectedBudget, setSelectedBudget] = useState(null);
@@ -73,7 +75,7 @@ export default function BudgetsScreen() {
                         />
                         <Card.Content>
                             <View style={styles.progressContainer}>
-                                <Text style={styles.progressText}>${item.spent.toFixed(2)} / ${item.amount}</Text>
+                                <Text style={styles.progressText}>${item.spent} / ${item.amount}</Text>
                                 <ProgressBar progress={Math.min(item.spent / parseFloat(item.amount), 1)} color={MD3Colors.primary50} style={styles.progressBar}/>
                             </View>
                         </Card.Content>

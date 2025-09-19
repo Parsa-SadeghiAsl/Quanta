@@ -4,7 +4,7 @@ from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions
-from django.db.models import Sum
+from django.db.models import Sum, OuterRef, Subquery, DecimalField
 from django.db.models.functions import Coalesce
 from decimal import Decimal
 from .serializers import BudgetSerializer, TransactionSerializer
@@ -29,24 +29,20 @@ class SummaryAnalyticsView(APIView):
         except (ValueError, TypeError):
             return Response({"error": "Invalid year or month format."}, status=400)
 
-        # Date range for the selected month
         start_of_month = datetime.date(year, month, 1)
         _, last_day = calendar.monthrange(year, month)
         end_of_month = datetime.date(year, month, last_day)
 
-        # Total balance is always the current total across all accounts
         total_balance = Account.objects.filter(user=user).aggregate(
             total=Coalesce(Sum("balance"), Decimal("0.00"))
         )["total"]
 
-        # Monthly income for the selected period
         monthly_income = Transaction.objects.filter(
             user=user,
             date__range=[start_of_month, end_of_month],
             category__type="income",
         ).aggregate(total=Coalesce(Sum("amount"), Decimal("0.00")))["total"]
 
-        # Monthly expenses for the selected period
         monthly_expenses = Transaction.objects.filter(
             user=user,
             date__range=[start_of_month, end_of_month],
@@ -77,16 +73,33 @@ class BudgetProgressView(APIView):
         except (ValueError, TypeError):
             year, month = timezone.localdate().year, timezone.localdate().month
 
-        # Find budgets that overlap with the selected month
+        spent_subquery = (
+            Transaction.objects.filter(
+                category=OuterRef("category"),
+                user=OuterRef("user"),
+                date__gte=OuterRef("start_date"),
+                date__lte=OuterRef("end_date"),
+            )
+            .order_by()
+            .values("category")
+            .annotate(total=Sum("amount"))
+            .values("total")
+        )
+
         budgets = Budget.objects.filter(
             user=user,
             start_date__year__lte=year,
             end_date__year__gte=year,
             start_date__month__lte=month,
             end_date__month__gte=month,
+        ).annotate(
+            spent=Coalesce(
+                Subquery(spent_subquery, output_field=DecimalField()), Decimal("0.00")
+            )
         )
 
         serializer = BudgetSerializer(budgets, many=True)
+        print(serializer.data)
         return Response(serializer.data)
 
 
@@ -120,7 +133,6 @@ class SpendingByCategoryAnalyticsView(APIView):
             .order_by("-amount")
         )
 
-        # Format for react-native-chart-kit pie chart
         formatted_data = [
             {
                 "fullName": item["category__name"] or "Uncategorized",
