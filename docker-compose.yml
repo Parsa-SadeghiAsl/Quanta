@@ -17,6 +17,16 @@ services:
 
     depends_on:
       - db
+      
+  scheduler:
+    build: ./backend
+    command: sh /app/scheduler.sh
+    volumes:
+      - ./backend:/app
+    env_file:
+      - .env
+    depends_on:
+      - backend
   db:
     image: postgres:15
     environment:
