@@ -4,9 +4,8 @@ import { DrawerContentScrollView, DrawerItemList, DrawerItem } from '@react-navi
 import { Avatar, Text, Divider, Appbar } from 'react-native-paper';
 import { useAuth } from '../hooks/useAuth';
 import { useProfile } from '../hooks/useApi';
-import Constants from "expo-constants";
 
-const API_URL = Constants.expoConfig?.extra?.apiUrl;
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export default function CustomDrawerContent(props) {
   const { signOut } = useAuth();
