@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { View, Alert, FlatList, StyleSheet } from 'react-native';
-import { Text, Card, FAB, IconButton, ProgressBar, MD3Colors } from 'react-native-paper';
+import { Text, Card, FAB, IconButton, ProgressBar } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { useBudgetProgress, useDeleteBudget } from '../hooks/useApi';
 import { useDate } from '../components/DateContext';
 import { format, parseISO } from 'date-fns';
+import { AppColors } from '../src/theme/theme'
 import { useFabVisibility } from '../hooks/useFabVisibility'; // Import the hook
 import ManagementDialog from '../components/ManagementDialog'; // Import the component
 
@@ -61,7 +62,7 @@ export default function BudgetsScreen() {
                         <Card.Content>
                             <View style={styles.progressContainer}>
                                 <Text style={styles.progressText}>${item.spent} / ${item.amount}</Text>
-                                <ProgressBar progress={Math.min(item.spent / parseFloat(item.amount), 1)} color={MD3Colors.primary50} style={styles.progressBar}/>
+                                <ProgressBar progress={Math.min(item.spent / parseFloat(item.amount), 1)} color={AppColors.primary} style={styles.progressBar}/>
                             </View>
                         </Card.Content>
                     </Card>
